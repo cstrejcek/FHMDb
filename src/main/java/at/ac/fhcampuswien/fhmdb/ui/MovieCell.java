@@ -28,7 +28,11 @@ public class MovieCell extends ListCell<Movie> {
                             ? movie.getDescription()
                             : "No description available"
             );
-
+            detail.setText(
+                    !movie.getGenres().equals("")
+                            ? detail.getText() + "\n\n" + movie.getGenres()
+                            : detail.getText() + "\n\n" + "No genre available"
+            );
 
             // color scheme
             title.getStyleClass().add("text-yellow");
