@@ -37,6 +37,7 @@ public class HomeController implements Initializable {
 
     private FilteredList<Movie> filteredMovies;
 
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         filteredMovies = loadMovies(filteredMovies);
@@ -47,9 +48,18 @@ public class HomeController implements Initializable {
 
         // TODO add genre filter items with genreComboBox.getItems().addAll(...)
         genreComboBox.setPromptText("Filter by Genre");
+        genreComboBox.getItems().add("");
+        genreComboBox.getItems().addAll( Genre.values());
 
         // TODO add event handlers to buttons and call the regarding methods
         // either set event handlers in the fxml file (onAction) or add them here
+        searchBtn.setOnAction(event -> {
+            Object selectedObject = genreComboBox.getValue(); // Get the selected genre
+            String selectedGenre= selectedObject instanceof Genre? ((Genre)selectedObject).toString() : "";
+
+            filterMovies(filteredMovies,searchField.getText(),selectedGenre);
+
+        });
 
         // Sort button example:
         sortBtn.setOnAction(actionEvent -> {
@@ -79,5 +89,14 @@ public class HomeController implements Initializable {
         } else {
             filteredMovies.getSource().sort(Comparator.comparing(Movie::getTitle).reversed());
         }
+    }
+    public static FilteredList<Movie> filterMovies(FilteredList<Movie> filteredMovies,String selectedText,String selectedGenre){
+        Predicate<Movie> containsTitle = i -> i.getTitle().toLowerCase().contains(selectedText.toLowerCase());
+        Predicate<Movie> containsDescription = i -> i.getDescription().toLowerCase().contains(selectedText.toLowerCase());;
+        Predicate<Movie> queryFilter = containsTitle.or(containsDescription);
+        Predicate<Movie> containsGenre = i -> i.getGenres().contains(selectedGenre.toString());
+        Predicate<Movie> filter = containsGenre.and(queryFilter);
+        filteredMovies.setPredicate(filter);
+        return filteredMovies;
     }
 }
