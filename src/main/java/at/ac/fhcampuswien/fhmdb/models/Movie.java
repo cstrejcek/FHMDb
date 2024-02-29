@@ -18,7 +18,7 @@ public class Movie {
         String genresString = "";
         if(genres != null) {
             for (Genre genre : genres) {
-                genresString += genre.toString().replace('_',' ') + ",";
+                genresString += genre.toString() + ",";
             }
             if (!genresString.isEmpty()) {
                 genresString = genresString.substring(0, genresString.length() - 1);

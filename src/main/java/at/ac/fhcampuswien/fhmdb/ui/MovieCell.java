@@ -20,7 +20,9 @@ public class MovieCell extends ListCell<Movie> {
 
         if (empty || movie == null) {
             setText(null);
+            layout.setVisible(false);
         } else {
+            layout.setVisible(true);
             this.getStyleClass().add("movie-cell");
             title.setText(movie.getTitle());
             detail.setText(
