@@ -1,19 +1,23 @@
 package at.ac.fhcampuswien.fhmdb;
 
+import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXListView;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 
 import java.net.URL;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Predicate;
 
 public class HomeController implements Initializable {
     @FXML
@@ -49,21 +53,31 @@ public class HomeController implements Initializable {
 
         // Sort button example:
         sortBtn.setOnAction(actionEvent -> {
-            if(sortBtn.getText().equals("Sort (asc)")) {
+            if (sortBtn.getText().equals("Sort (asc)")) {
                 // TODO sort observableMovies ascending
+                HomeController.sortMovies(filteredMovies, true);
                 sortBtn.setText("Sort (desc)");
             } else {
                 // TODO sort observableMovies descending
+                HomeController.sortMovies(filteredMovies, false);
                 sortBtn.setText("Sort (asc)");
             }
         });
 
 
     }
-    public static FilteredList<Movie> loadMovies(FilteredList<Movie> filteredMovies){
+
+    public static FilteredList<Movie> loadMovies(FilteredList<Movie> filteredMovies) {
         List<Movie> allMovies = Movie.initializeMovies();
         filteredMovies = new FilteredList<>(FXCollections.observableArrayList(allMovies));
         return filteredMovies;
     }
 
+    public static void sortMovies(FilteredList<Movie> filteredMovies, boolean ascending) {
+        if (ascending) {
+            filteredMovies.getSource().sort(Comparator.comparing(Movie::getTitle));
+        } else {
+            filteredMovies.getSource().sort(Comparator.comparing(Movie::getTitle).reversed());
+        }
+    }
 }
