@@ -10,4 +10,21 @@ class HomeControllerTest {
         System.out.println(message);
         assertEquals(message, "Test");
     }
+
+    /* Sortierung
+    a-z
+    z-a
+    filtern und sortieren
+     */
+
+    /* Filter
+    Filter
+    filtern und suchen
+    filtern (Genres) --> zurück auf alle setzen
+     */
+
+    /* Suchen
+     upper lower case - suchen
+     suchen --> Funktionalität
+     */
 }
