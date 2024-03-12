@@ -144,7 +144,7 @@ class HomeControllerTest {
         FilteredList<Movie> filteredMovies = new FilteredList<>(observableMovies, p -> true);
 
         //When
-        String searchText = "alien";
+        String searchText = "not available";
         //avoiding null pointer exceptions by checking if the title and description are not null before calling methods on them
         filteredMovies.setPredicate(movie ->
                 (movie.getTitle() != null && movie.getTitle().toLowerCase().contains(searchText.toLowerCase())) ||
