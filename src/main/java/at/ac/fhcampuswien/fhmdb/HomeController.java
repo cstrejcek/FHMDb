@@ -7,7 +7,6 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXListView;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -83,20 +82,24 @@ public class HomeController implements Initializable {
         return filteredMovies;
     }
 
-    public static void sortMovies(FilteredList<Movie> filteredMovies, boolean ascending) {
+    public static FilteredList<Movie> sortMovies(FilteredList<Movie> filteredMovies, boolean ascending) {
         if (ascending) {
             filteredMovies.getSource().sort(Comparator.comparing(Movie::getTitle));
         } else {
             filteredMovies.getSource().sort(Comparator.comparing(Movie::getTitle).reversed());
         }
+        return filteredMovies;
     }
     public static FilteredList<Movie> filterMovies(FilteredList<Movie> filteredMovies,String selectedText,String selectedGenre){
-        Predicate<Movie> containsTitle = i -> i.getTitle().toLowerCase().contains(selectedText.toLowerCase());
-        Predicate<Movie> containsDescription = i -> i.getDescription().toLowerCase().contains(selectedText.toLowerCase());;
-        Predicate<Movie> queryFilter = containsTitle.or(containsDescription);
-        Predicate<Movie> containsGenre = i -> i.getGenres().contains(selectedGenre.toString());
-        Predicate<Movie> filter = containsGenre.and(queryFilter);
-        filteredMovies.setPredicate(filter);
+        if(!filteredMovies.isEmpty()) {
+            Predicate<Movie> containsTitle = i -> i.getTitle().toLowerCase().contains(selectedText.toLowerCase());
+            Predicate<Movie> containsDescription = i -> i.getDescription().toLowerCase().contains(selectedText.toLowerCase());
+            ;
+            Predicate<Movie> queryFilter = containsTitle.or(containsDescription);
+            Predicate<Movie> containsGenre = i -> i.getGenres().contains(selectedGenre.toString());
+            Predicate<Movie> filter = containsGenre.and(queryFilter);
+            filteredMovies.setPredicate(filter);
+        }
         return filteredMovies;
     }
 }
