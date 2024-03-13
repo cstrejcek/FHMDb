@@ -7,12 +7,100 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import org.junit.jupiter.api.Test;
 
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HomeControllerTest {
+
+    @Test
+    public void testMovieSortingAscending() {
+        List<Movie> movies = generateMovies(5); // Test with the first 5 movies
+        List<Movie> expectedSortedMovies = Arrays.asList(
+                new Movie("Balto", "An outcast half-wolf risks his life to prevent a deadly epidemic from ravaging Nome,Alaska"),
+                new Movie("Babe", "Babe is a little pig who doesn't quite know his place in the world. With a bunch of odd friends, like Ferdinand the duck who thinks he is a rooster and Fly the dog he calls mom, Babe realizes that he has the makings to become the greatest sheep pig of all time, and Farmer Hogget knows it. With the help of the sheep dogs Babe learns that a pig can be anything that he wants to be."),
+                new Movie("Assassins", "Assassin Robert Rath arrives at a funeral to kill a prominent mobster, only to witness a rival hired gun complete the job for him--with grisly results. Horrified by the murder of innocent bystanders, Rath decides to take one last job and then return to civilian life. But finding his way out of the world of contract killing grows ever more dangerous as Rath falls for his female target and becomes a marked man himself."),
+                new Movie("Across the Sea of Time", "A young Russian boy, Thomas Minton, travels to New York as a passenger on a Russian freighter. Close to Ellis Island he gets off and thus starts his journey to America the same way as all immigrants in former times. Thomas is searching for the family of one of his ancestors, who had emigrated decades ago, but once sent a letter home together with a sample of his new profession: 3D-Photography. The boy follows his relative's traces by counter-checking the old 3D-Photographs of New York (using an antique viewer) with the same places and how they look today. This way, the audience gets to see the Big Apple in former times as well as today."),
+                new Movie("Ace Ventura: When Nature Calls", "Summoned from an ashram in Tibet, Ace finds himself on a perilous journey into the jungles of Africa to find Shikaka, the missing sacred animal of the friendly Wachati tribe. He must accomplish this before the wedding of the Wachati's Princess to the prince of the warrior Wachootoos. If Ace fails, the result will be a vicious tribal war.")
+        );
+
+        // Sort the movies in ascending order
+        HomeController.sortMovies(new FilteredList<>(FXCollections.observableArrayList(movies)), true);
+
+        // Define the expected order of movies after sorting
+        List<Movie> expectedSortedMovies1 = Arrays.asList(
+                new Movie("Ace Ventura: When Nature Calls", "Summoned from an ashram in Tibet, Ace finds himself on a perilous journey into the jungles of Africa to find Shikaka, the missing sacred animal of the friendly Wachati tribe. He must accomplish this before the wedding of the Wachati's Princess to the prince of the warrior Wachootoos. If Ace fails, the result will be a vicious tribal war."),
+                new Movie("Balto", "An outcast half-wolf risks his life to prevent a deadly epidemic from ravaging Nome,Alaska"),
+                new Movie("Babe", "Babe is a little pig who doesn't quite know his place in the world. With a bunch of odd friends, like Ferdinand the duck who thinks he is a rooster and Fly the dog he calls mom, Babe realizes that he has the makings to become the greatest sheep pig of all time, and Farmer Hogget knows it. With the help of the sheep dogs Babe learns that a pig can be anything that he wants to be."),
+                new Movie("Across the Sea of Time", "A young Russian boy, Thomas Minton, travels to New York as a passenger on a Russian freighter. Close to Ellis Island he gets off and thus starts his journey to America the same way as all immigrants in former times. Thomas is searching for the family of one of his ancestors, who had emigrated decades ago, but once sent a letter home together with a sample of his new profession: 3D-Photography. The boy follows his relative's traces by counter-checking the old 3D-Photographs of New York (using an antique viewer) with the same places and how they look today. This way, the audience gets to see the Big Apple in former times as well as today."),
+                new Movie("Assassins", "Assassin Robert Rath arrives at a funeral to kill a prominent mobster, only to witness a rival hired gun complete the job for him--with grisly results. Horrified by the murder of innocent bystanders, Rath decides to take one last job and then return to civilian life. But finding his way out of the world of contract killing grows ever more dangerous as Rath falls for his female target and becomes a marked man himself.")
+        );
+
+        // Compare the sorted movies with the expected order
+        assertEquals(expectedSortedMovies, movies);
+    }
+
+
+    @Test
+    public void testMovieSortingDescending() {
+        List<Movie> movieList = Movie.initializeMovies();
+        List<Movie> movies = generateMovies(5); // Test with the first 5 movies
+        List<Movie> expectedSortedMovies = Arrays.asList(
+                new Movie("Balto", "An outcast half-wolf risks his life to prevent a deadly epidemic from ravaging Nome,Alaska"),
+                new Movie("Babe", "Babe is a little pig who doesn't quite know his place in the world. With a bunch of odd friends, like Ferdinand the duck who thinks he is a rooster and Fly the dog he calls mom, Babe realizes that he has the makings to become the greatest sheep pig of all time, and Farmer Hogget knows it. With the help of the sheep dogs Babe learns that a pig can be anything that he wants to be."),
+                new Movie("Assassins", "Assassin Robert Rath arrives at a funeral to kill a prominent mobster, only to witness a rival hired gun complete the job for him--with grisly results. Horrified by the murder of innocent bystanders, Rath decides to take one last job and then return to civilian life. But finding his way out of the world of contract killing grows ever more dangerous as Rath falls for his female target and becomes a marked man himself."),
+                new Movie("Across the Sea of Time", "A young Russian boy, Thomas Minton, travels to New York as a passenger on a Russian freighter. Close to Ellis Island he gets off and thus starts his journey to America the same way as all immigrants in former times. Thomas is searching for the family of one of his ancestors, who had emigrated decades ago, but once sent a letter home together with a sample of his new profession: 3D-Photography. The boy follows his relative's traces by counter-checking the old 3D-Photographs of New York (using an antique viewer) with the same places and how they look today. This way, the audience gets to see the Big Apple in former times as well as today."),
+                new Movie("Ace Ventura: When Nature Calls", "Summoned from an ashram in Tibet, Ace finds himself on a perilous journey into the jungles of Africa to find Shikaka, the missing sacred animal of the friendly Wachati tribe. He must accomplish this before the wedding of the Wachati's Princess to the prince of the warrior Wachootoos. If Ace fails, the result will be a vicious tribal war.")
+        );
+
+
+        HomeController.sortMovies((FilteredList<Movie>) movies, false);
+
+        assertEquals(expectedSortedMovies, movies);
+    }
+
+    // Helper method to generate a list of movies
+    private List<Movie> generateMovies(int count) {
+        return Movie.initializeMovies().subList(0, Math.min(count, Movie.initializeMovies().size()));
+    }
+
+    @Test
+    public void testFilteredMoviesSortingAscending() {
+        // Generate some movies (you may replace this with actual movies)
+        List<Movie> allMovies = Arrays.asList(
+                new Movie("Balto", "An outcast half-wolf risks his life to prevent a deadly epidemic from ravaging Nome,Alaska"),
+                new Movie("Babe", "Babe is a little pig who doesn't quite know his place in the world. With a bunch of odd friends, like Ferdinand the duck who thinks he is a rooster and Fly the dog he calls mom, Babe realizes that he has the makings to become the greatest sheep pig of all time, and Farmer Hogget knows it. With the help of the sheep dogs Babe learns that a pig can be anything that he wants to be."),
+                new Movie("Assassins", "Assassin Robert Rath arrives at a funeral to kill a prominent mobster, only to witness a rival hired gun complete the job for him--with grisly results. Horrified by the murder of innocent bystanders, Rath decides to take one last job and then return to civilian life. But finding his way out of the world of contract killing grows ever more dangerous as Rath falls for his female target and becomes a marked man himself."),
+                new Movie("Across the Sea of Time", "A young Russian boy, Thomas Minton, travels to New York as a passenger on a Russian freighter. Close to Ellis Island he gets off and thus starts his journey to America the same way as all immigrants in former times. Thomas is searching for the family of one of his ancestors, who had emigrated decades ago, but once sent a letter home together with a sample of his new profession: 3D-Photography. The boy follows his relative's traces by counter-checking the old 3D-Photographs of New York (using an antique viewer) with the same places and how they look today. This way, the audience gets to see the Big Apple in former times as well as today."),
+                new Movie("Ace Ventura: When Nature Calls", "Summoned from an ashram in Tibet, Ace finds himself on a perilous journey into the jungles of Africa to find Shikaka, the missing sacred animal of the friendly Wachati tribe. He must accomplish this before the wedding of the Wachati's Princess to the prince of the warrior Wachootoos. If Ace fails, the result will be a vicious tribal war.")
+        );
+
+        // Create filtered movies
+        FilteredList<Movie> filteredMovies = new FilteredList<>(FXCollections.observableArrayList(allMovies));
+
+        // Filter the movies
+        HomeController.filterMovies(filteredMovies, "Movie", "");
+
+        // Sort the filtered movies in ascending order
+        HomeController.sortMovies(filteredMovies, true);
+
+        // Check if the filtered movies are sorted
+        assertTrue(isSortedAscending(filteredMovies));
+    }
+
+    // Helper method to check if a list of movies is sorted in ascending order
+    private boolean isSortedAscending(List<Movie> movies) {
+        for (int i = 0; i < movies.size() - 1; i++) {
+            if (movies.get(i).getTitle().compareTo(movies.get(i + 1).getTitle()) > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Test
     void movies_filtered_by_genre() {
