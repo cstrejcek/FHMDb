@@ -48,15 +48,15 @@ public class HomeController implements Initializable {
         // TODO add genre filter items with genreComboBox.getItems().addAll(...)
         genreComboBox.setPromptText("Filter by Genre");
         genreComboBox.getItems().add("All");
-        genreComboBox.getItems().addAll( Genre.values());
+        genreComboBox.getItems().addAll(Genre.values());
 
         // TODO add event handlers to buttons and call the regarding methods
         // either set event handlers in the fxml file (onAction) or add them here
         searchBtn.setOnAction(event -> {
             Object selectedObject = genreComboBox.getValue(); // Get the selected genre
-            String selectedGenre= selectedObject instanceof Genre? ((Genre)selectedObject).toString() : "";
+            String selectedGenre = selectedObject instanceof Genre ? ((Genre) selectedObject).toString() : "";
 
-            filterMovies(filteredMovies,searchField.getText(),selectedGenre);
+            filterMovies(filteredMovies, searchField.getText(), selectedGenre);
 
         });
 
@@ -90,11 +90,25 @@ public class HomeController implements Initializable {
         }
         return filteredMovies;
     }
-    public static FilteredList<Movie> filterMovies(FilteredList<Movie> filteredMovies,String selectedText,String selectedGenre){
-        if(!filteredMovies.isEmpty()) {
+
+    public static FilteredList<Movie> filterMovies(FilteredList<Movie> filteredMovies, String selectedText, String selectedGenre) {
+         Predicate<Movie> containsTitle = movie -> selectedText == null || movie.getTitle() != null && movie.getTitle().toLowerCase().contains(selectedText.toLowerCase());
+         Predicate<Movie> containsDescription = movie -> selectedText == null || movie.getDescription() != null && movie.getDescription().toLowerCase().contains(selectedText.toLowerCase());
+         Predicate<Movie> queryFilter = containsTitle.or(containsDescription);
+
+         Predicate<Movie> containsGenre = movie -> selectedGenre == null || movie.getGenres().contains(selectedGenre);
+         Predicate<Movie> filter = containsGenre.and(queryFilter);
+
+         filteredMovies.setPredicate(filter);
+
+         return filteredMovies;
+     }
+ }
+    /*public static FilteredList<Movie> filterMovies(FilteredList<Movie> filteredMovies, String selectedText, String selectedGenre) {
+        if(!filteredMovies.isEmpty() && selectedText != null && selectedGenre != null) {
             Predicate<Movie> containsTitle = i -> i.getTitle().toLowerCase().contains(selectedText.toLowerCase());
             Predicate<Movie> containsDescription = i -> i.getDescription().toLowerCase().contains(selectedText.toLowerCase());
-            ;
+
             Predicate<Movie> queryFilter = containsTitle.or(containsDescription);
             Predicate<Movie> containsGenre = i -> i.getGenres().contains(selectedGenre.toString());
             Predicate<Movie> filter = containsGenre.and(queryFilter);
@@ -102,4 +116,5 @@ public class HomeController implements Initializable {
         }
         return filteredMovies;
     }
-}
+}*/
+
