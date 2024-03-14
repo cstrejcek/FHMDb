@@ -37,7 +37,7 @@ public class MovieCell extends ListCell<Movie> {
             );
 
             // color scheme
-            title.getStyleClass().add("text-yellow");
+            title.getStyleClass().add("text-blue");
             detail.getStyleClass().add("text-white");
             layout.setBackground(new Background(new BackgroundFill(Color.web("#454545"), null, null)));
 

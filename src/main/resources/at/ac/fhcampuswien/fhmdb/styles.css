@@ -3,6 +3,10 @@
     -fx-background-color: #f5c518;
 }
 
+.background-blue {
+    -fx-background-color: #07d3f2;
+}
+
 .background-black {
     -fx-background-color: #000000;
 }
@@ -13,6 +17,10 @@
 
 .text-yellow {
     -fx-text-fill: #f5c518;
+}
+
+.text-blue {
+    -fx-text-fill: #07d3f2;
 }
 
 .text-white {
