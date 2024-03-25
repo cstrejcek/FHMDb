@@ -12,11 +12,15 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class HomeController implements Initializable {
     @FXML
@@ -39,7 +43,11 @@ public class HomeController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        filteredMovies = loadMovies(filteredMovies);
+        try {
+            filteredMovies = loadMovies(filteredMovies);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // initialize UI stuff
         movieListView.setItems(filteredMovies);   // set data of observable list to list view
@@ -76,7 +84,7 @@ public class HomeController implements Initializable {
 
     }
 
-    public static FilteredList<Movie> loadMovies(FilteredList<Movie> filteredMovies) {
+    public static FilteredList<Movie> loadMovies(FilteredList<Movie> filteredMovies) throws IOException {
         List<Movie> allMovies = Movie.initializeMovies();
         filteredMovies = new FilteredList<>(FXCollections.observableArrayList(allMovies));
         return filteredMovies;
@@ -103,18 +111,17 @@ public class HomeController implements Initializable {
 
          return filteredMovies;
      }
- }
-    /*public static FilteredList<Movie> filterMovies(FilteredList<Movie> filteredMovies, String selectedText, String selectedGenre) {
-        if(!filteredMovies.isEmpty() && selectedText != null && selectedGenre != null) {
-            Predicate<Movie> containsTitle = i -> i.getTitle().toLowerCase().contains(selectedText.toLowerCase());
-            Predicate<Movie> containsDescription = i -> i.getDescription().toLowerCase().contains(selectedText.toLowerCase());
+    String getMostPopularActor(List<Movie> movies){
+        Map<String, Long> actorCounts = movies.stream()
+                .flatMap(movie -> movie.getMainCast().stream()) //stream of whole cast
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())); // group and count entries
 
-            Predicate<Movie> queryFilter = containsTitle.or(containsDescription);
-            Predicate<Movie> containsGenre = i -> i.getGenres().contains(selectedGenre.toString());
-            Predicate<Movie> filter = containsGenre.and(queryFilter);
-            filteredMovies.setPredicate(filter);
-        }
-        return filteredMovies;
+        String mostPopularActor = actorCounts.entrySet().stream()
+                .max(Map.Entry.comparingByValue()) // Vergleiche nach der Anzahl der Vorkommen
+                .map(Map.Entry::getKey) // Extrahiere den Schauspieler
+                .orElse(null); // Falls kein Schauspieler gefunden wurde
+
+        return mostPopularActor;
     }
-}*/
+ }
 

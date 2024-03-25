@@ -32,7 +32,7 @@ public class MovieCell extends ListCell<Movie> {
             );
             detail.setText(
                     !movie.getGenres().equals("")
-                            ? detail.getText() + "\n\n" + movie.getGenres()
+                            ? detail.getText() + "\n\n" + movie.getGenreString()
                             : detail.getText() + "\n\n" + "No genre available"
             );
 
