@@ -33,14 +33,15 @@ public class MovieAPI {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
             String responseBody = response.body().string();
             return gson.fromJson(responseBody, new TypeToken<List<Movie>>() {}.getType());
-            //return gson.fromJson(responseBody, List.class);
         }
     }
 
-    public List<Movie> searchMovies(String query, String genre) throws IOException {
+    public List<Movie> filterMovies(String query, String genre,String releaseYear,String rating) throws IOException {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL).newBuilder();
         urlBuilder.addQueryParameter("query", query);
         urlBuilder.addQueryParameter("genre", genre);
+        urlBuilder.addQueryParameter("releaseYear", releaseYear);
+        urlBuilder.addQueryParameter("ratingFrom", rating);
         String url = urlBuilder.build().toString();
         Request request = new Request.Builder()
                 .url(url)
