@@ -58,7 +58,7 @@ class HomeControllerTest {
 
     //When
     String genreFilter = Genre.FAMILY.name(); // Genre to filter
-    FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), null, genreFilter);
+    FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), null, genreFilter);
 
     // Then
     //assertTrue(filteredMovies.size() > 0); //Filtered list should contain at least one movie
@@ -73,7 +73,7 @@ class HomeControllerTest {
         // When
         String genreFilter = Genre.DRAMA.name();
         String searchText = "dead";
-        FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, genreFilter);
+        FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, genreFilter);
 
         // Then
         assertTrue(filteredMovies.stream().anyMatch(movie -> movie.getGenres().contains(genreFilter) && movie.getTitle().toLowerCase().contains(searchText.toLowerCase()))); //Filtered list should contain movies that match the search text and genre.
@@ -86,14 +86,14 @@ class HomeControllerTest {
 
         // 1. When
         String genreFilter = Genre.ACTION.name();
-        FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), null, genreFilter);
+        FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), null, genreFilter);
 
         // 1. Then
         long expectedActionMoviesCount = testMovies.stream().filter(movie -> movie.getGenres().contains(Genre.ACTION.name())).count(); // Verify the filtered list size after applying the genre filter
         assertEquals(expectedActionMoviesCount, filteredMovies.size()); //Filtered list should contain only movies with genre ACTION
 
         //2. When
-        HomeController.filterMovies(filteredMovies, null, null); // Reset the filter by applying null for both parameters
+        HomeController.filteredMovies(filteredMovies, null, null); // Reset the filter by applying null for both parameters
 
         // 2.Then
         assertEquals(testMovies.size(), filteredMovies.size()); //Filtered list should contain all movies after resetting the filter
@@ -106,7 +106,7 @@ class HomeControllerTest {
 
         // When
         // Calling filterMovies with null values to simulate no filtering
-        FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), null, null);
+        FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), null, null);
 
         // Then
         assertEquals(testMovies.size(), filteredMovies.size()); //All movies should be displayed when filter is empty.
@@ -119,7 +119,7 @@ class HomeControllerTest {
 
         // When
         String searchText = "grump";
-        FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
+        FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
 
         // Then
         assertTrue(filteredMovies.stream().anyMatch(movie -> movie.getTitle().toLowerCase().contains(searchText.toLowerCase()))); //Filtered list should contain movies with 'grump' in the title
@@ -132,7 +132,7 @@ class HomeControllerTest {
 
         // When
         String searchText = "thief";
-        FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
+        FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
 
         // Then
         assertTrue(filteredMovies.stream().anyMatch(movie -> movie.getDescription().toLowerCase().contains(searchText.toLowerCase()))); //Filtered list should contain movies with 'thief' in the description
@@ -147,7 +147,7 @@ class HomeControllerTest {
         FilteredList<Movie> filteredMovies = new FilteredList<>(observableMovies, p -> true);
 
         //When
-        FilteredList<Movie> actual = HomeController.filterMovies(filteredMovies,null,null);
+        FilteredList<Movie> actual = HomeController.filteredMovies(filteredMovies,null,null);
 
         //Then
         assertEquals(actual,filteredMovies);
@@ -161,7 +161,7 @@ class HomeControllerTest {
         // When
         String searchText = "inception";
         // Using filterMovies method to apply the search filter
-        FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
+        FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
 
         // Then
         assertTrue(filteredMovies.isEmpty()); //Filtered list should be empty when no movies match the search criteria
@@ -174,7 +174,7 @@ class HomeControllerTest {
 
             // When
             String searchText = "JUmaNjI"; // Case-insensitive search text
-            FilteredList<Movie> filteredMovies = HomeController.filterMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
+            FilteredList<Movie> filteredMovies = HomeController.filteredMovies(new FilteredList<>(FXCollections.observableArrayList(testMovies)), searchText, null);
 
             // Then
             assertTrue(filteredMovies.stream().anyMatch(movie -> movie.getTitle().equalsIgnoreCase("Jumanji"))); //Filtered list should contain 'Jumanji' regardless of case

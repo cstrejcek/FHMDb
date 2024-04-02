@@ -2,6 +2,7 @@ package at.ac.fhcampuswien.fhmdb;
 
 import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
+import at.ac.fhcampuswien.fhmdb.models.MovieAPI;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
@@ -14,10 +15,7 @@ import javafx.scene.control.TextField;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -34,12 +32,15 @@ public class HomeController implements Initializable {
 
     @FXML
     public JFXComboBox genreComboBox;
+    @FXML
+    public TextField releaseYearField;
+    @FXML
+    public TextField ratingField;
 
     @FXML
     public JFXButton sortBtn;
 
     private FilteredList<Movie> filteredMovies;
-
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -56,17 +57,12 @@ public class HomeController implements Initializable {
         // TODO add genre filter items with genreComboBox.getItems().addAll(...)
         genreComboBox.setPromptText("Filter by Genre");
         genreComboBox.getItems().add("ALL");
-        genreComboBox.getItems().addAll(Genre.values());
+        genreComboBox.getItems().addAll(Arrays.stream(Genre.values()).map(Enum::name).collect(Collectors.toList()));
+        //genreComboBox.getSelectionModel().select("ALL");
 
         // TODO add event handlers to buttons and call the regarding methods
         // either set event handlers in the fxml file (onAction) or add them here
-        searchBtn.setOnAction(event -> {
-            Object selectedObject = genreComboBox.getValue(); // Get the selected genre
-            String selectedGenre = selectedObject instanceof Genre ? ((Genre) selectedObject).toString() : "";
-
-            filterMovies(filteredMovies, searchField.getText(), selectedGenre);
-
-        });
+        searchBtn.setOnAction(event -> filterMovies());
 
         // Sort button example:
         sortBtn.setOnAction(actionEvent -> {
@@ -80,8 +76,6 @@ public class HomeController implements Initializable {
                 sortBtn.setText("Sort (asc)");
             }
         });
-
-
     }
 
     public static FilteredList<Movie> loadMovies(FilteredList<Movie> filteredMovies) throws IOException {
@@ -98,19 +92,42 @@ public class HomeController implements Initializable {
         }
         return filteredMovies;
     }
+    public void filterMovies() {
+        String searchText = searchField.getText().toLowerCase();
+        String selectedGen = (String) genreComboBox.getSelectionModel().getSelectedItem();
+        String yearText = releaseYearField.getText();
+        String ratingText = ratingField.getText();
 
-    public static FilteredList<Movie> filterMovies(FilteredList<Movie> filteredMovies, String selectedText, String selectedGenre) {
-         Predicate<Movie> containsTitle = movie -> selectedText == null || movie.getTitle() != null && movie.getTitle().toLowerCase().contains(selectedText.toLowerCase());
-         Predicate<Movie> containsDescription = movie -> selectedText == null || movie.getDescription() != null && movie.getDescription().toLowerCase().contains(selectedText.toLowerCase());
-         Predicate<Movie> queryFilter = containsTitle.or(containsDescription);
+        Predicate<Movie> textPredicate = movie -> searchText.isEmpty()
+                || movie.getTitle().toLowerCase().contains(searchText)
+                || movie.getDescription().toLowerCase().contains(searchText)
+                || movie.getMainCast().stream().anyMatch(cast -> cast.toLowerCase().contains(searchText))
+                || movie.getDirectors().stream().anyMatch(director -> director.toLowerCase().contains(searchText))
+                || movie.getWriters().stream().anyMatch(writer -> writer.toLowerCase().contains(searchText));
 
-         Predicate<Movie> containsGenre = movie -> selectedGenre == null || movie.getGenres().contains(selectedGenre);
-         Predicate<Movie> filter = containsGenre.and(queryFilter);
+        /*Predicate<Movie> genrePredicate = movie -> "ALL".equals(selectedGen)
+                || (movie.getGenres() != null && movie.getGenres().stream().anyMatch(genre -> genre.toString().equals(selectedGen)));
+*/
+        Predicate<Movie> genrePredicate = movie -> {
+            //Fall: wo kein Genre ausgewählt wurde oder "ALL" ausgewählt wurde
+            if (selectedGen == null || selectedGen.isEmpty() || "ALL".equals(selectedGen)) {
+                return true; // Akzeptiere alle Filme
+            } else {
+                return movie.getGenres() != null && movie.getGenres().stream().anyMatch(genre -> genre.toString().equals(selectedGen));
+            }
+        };
 
-         filteredMovies.setPredicate(filter);
+        Predicate<Movie> yearPredicate = movie -> yearText.isEmpty()
+                || String.valueOf(movie.getReleaseYear()).equals(yearText);
 
-         return filteredMovies;
-     }
+        Predicate<Movie> ratingPredicate = movie -> ratingText.isEmpty()
+                || (movie.getRating() >= Double.parseDouble(ratingText));
+
+        Predicate<Movie> combinedPredicate = textPredicate.and(genrePredicate).and(yearPredicate).and(ratingPredicate);
+
+        this.filteredMovies.setPredicate(combinedPredicate);
+    }
+
     String getMostPopularActor(List<Movie> movies){
         Map<String, Long> actorCounts = movies.stream()
                 .flatMap(movie -> movie.getMainCast().stream()) //stream of whole cast
@@ -122,6 +139,32 @@ public class HomeController implements Initializable {
                 .orElse(null); // Falls kein Schauspieler gefunden wurde
 
         return mostPopularActor;
+    }
+
+    int getLongestMovieTitle(List<Movie> movies) {
+        int maxLength = movies.stream()
+                .map(Movie::getTitle)
+                .mapToInt(String::length)// es wird in int umgewandelt
+                .max()//größter Wert
+                .orElse(0); //Falls die Liste leer ist
+
+        return maxLength;
+    }
+
+    long countMoviesFrom(List<Movie> movies, String director) {
+        long count = movies.stream()
+                .filter(movie -> director.equals(movie.getDirectors()))
+                .count(); //zählt die gefilterten Filme
+
+        return count; //Anzahl der Filme wird zurückgegeben
+    }
+
+    List<Movie> getMoviesBetweenYears(List<Movie> movies, int startYear, int endYear) {
+        List<Movie> filteredMovies = movies.stream()
+                .filter(movie -> movie.getReleaseYear() >= startYear && movie.getReleaseYear() <= endYear)
+                .collect(Collectors.toList()); //Sammeln der Filme in einer Lister
+
+        return filteredMovies;
     }
  }
 
