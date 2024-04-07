@@ -8,21 +8,24 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXListView;
 import javafx.collections.FXCollections;
-import javafx.collections.transformation.FilteredList;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class HomeController implements Initializable {
     @FXML
     public JFXButton searchBtn;
+
+    @FXML
+    public Label moviesLabel;
 
     @FXML
     public TextField searchField;
@@ -33,99 +36,107 @@ public class HomeController implements Initializable {
     @FXML
     public JFXComboBox genreComboBox;
     @FXML
-    public TextField releaseYearField;
+    public JFXComboBox releaseYearComboBox;
     @FXML
-    public TextField ratingField;
+    public JFXComboBox fromRatingComboBox;
 
     @FXML
     public JFXButton sortBtn;
 
-    private FilteredList<Movie> filteredMovies;
+    private List<Movie> movies;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            filteredMovies = loadMovies(filteredMovies);
+            movies = loadMovies(movies);
+            moviesLabel.setText("Showing " + movies.size() + " movies");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         // initialize UI stuff
-        movieListView.setItems(filteredMovies);   // set data of observable list to list view
+        movieListView.setItems(FXCollections.observableArrayList(movies));   // set data of observable list to list view
         movieListView.setCellFactory(movieListView -> new MovieCell()); // use custom cell factory to display data
 
         // TODO add genre filter items with genreComboBox.getItems().addAll(...)
         genreComboBox.setPromptText("Filter by Genre");
-        genreComboBox.getItems().add("ALL");
+        genreComboBox.getItems().add("");
         genreComboBox.getItems().addAll(Arrays.stream(Genre.values()).map(Enum::name).collect(Collectors.toList()));
-        //genreComboBox.getSelectionModel().select("ALL");
+
+        releaseYearComboBox.setPromptText("Filter by Release Year");
+        // Extract unique release years from the list of movies using streams
+        ObservableList<Integer> releaseYears = movies.stream()
+                .map(Movie::getReleaseYear)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+
+        releaseYearComboBox.getItems().add("");
+        releaseYearComboBox.getItems().addAll(releaseYears);
+
+        fromRatingComboBox.setPromptText("Filter by From Rating");
+        //Extract unique ratings from the list of movies using streams
+        ObservableList<Double> fromRatings = movies.stream()
+                .map(Movie::getRating)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+        fromRatingComboBox.getItems().add("");
+        fromRatingComboBox.getItems().addAll(fromRatings);
+
 
         // TODO add event handlers to buttons and call the regarding methods
         // either set event handlers in the fxml file (onAction) or add them here
-        searchBtn.setOnAction(event -> filterMovies());
+        searchBtn.setOnAction(event -> {
+            String searchText = searchField.getText().toLowerCase();
+            String selectedGen = genreComboBox.getSelectionModel().getSelectedItem() == null? "" : genreComboBox.getSelectionModel().getSelectedItem().toString();
+            String yearText = releaseYearComboBox.getSelectionModel().getSelectedItem() == null ? "" : releaseYearComboBox.getSelectionModel().getSelectedItem().toString();
+            String ratingText = fromRatingComboBox.getSelectionModel().getSelectedItem() == null ? "" : fromRatingComboBox.getSelectionModel().getSelectedItem().toString();
+                movies = filterAndSortMovies(movies,searchText,selectedGen,yearText,ratingText,Sort.UNSORTED);
+                sortBtn.setText("Sort");
+                movieListView.setItems(FXCollections.observableArrayList(movies));
+                moviesLabel.setText("Showing " + movies.size() + " movies");
+        });
 
         // Sort button example:
         sortBtn.setOnAction(actionEvent -> {
-            if (sortBtn.getText().equals("Sort (asc)")) {
+            if (sortBtn.getText().equals("Sort (asc)") || sortBtn.getText().equals("Sort")) {
                 // TODO sort observableMovies ascending
-                HomeController.sortMovies(filteredMovies, true);
+                HomeController.sortMovies(movies, true);
                 sortBtn.setText("Sort (desc)");
             } else {
                 // TODO sort observableMovies descending
-                HomeController.sortMovies(filteredMovies, false);
+                HomeController.sortMovies(movies, false);
                 sortBtn.setText("Sort (asc)");
             }
+            movieListView.setItems(FXCollections.observableArrayList(movies));
         });
     }
 
-    public static FilteredList<Movie> loadMovies(FilteredList<Movie> filteredMovies) throws IOException {
-        List<Movie> allMovies = Movie.initializeMovies();
-        filteredMovies = new FilteredList<>(FXCollections.observableArrayList(allMovies));
-        return filteredMovies;
+    public static List<Movie> loadMovies(List<Movie> movies) throws IOException {
+        return Movie.initializeMovies();
     }
 
-    public static FilteredList<Movie> sortMovies(FilteredList<Movie> filteredMovies, boolean ascending) {
+    public static List<Movie> sortMovies(List<Movie> movies, boolean ascending) {
         if (ascending) {
-            filteredMovies.getSource().sort(Comparator.comparing(Movie::getTitle));
+            movies.sort(Comparator.comparing(Movie::getTitle));
         } else {
-            filteredMovies.getSource().sort(Comparator.comparing(Movie::getTitle).reversed());
+            movies.sort(Comparator.comparing(Movie::getTitle).reversed());
         }
-        return filteredMovies;
+        return movies;
     }
-    public void filterMovies() {
-        String searchText = searchField.getText().toLowerCase();
-        String selectedGen = (String) genreComboBox.getSelectionModel().getSelectedItem();
-        String yearText = releaseYearField.getText();
-        String ratingText = ratingField.getText();
-
-        Predicate<Movie> textPredicate = movie -> searchText.isEmpty()
-                || movie.getTitle().toLowerCase().contains(searchText)
-                || movie.getDescription().toLowerCase().contains(searchText)
-                || movie.getMainCast().stream().anyMatch(cast -> cast.toLowerCase().contains(searchText))
-                || movie.getDirectors().stream().anyMatch(director -> director.toLowerCase().contains(searchText))
-                || movie.getWriters().stream().anyMatch(writer -> writer.toLowerCase().contains(searchText));
-
-        /*Predicate<Movie> genrePredicate = movie -> "ALL".equals(selectedGen)
-                || (movie.getGenres() != null && movie.getGenres().stream().anyMatch(genre -> genre.toString().equals(selectedGen)));
-*/
-        Predicate<Movie> genrePredicate = movie -> {
-            //Fall: wo kein Genre ausgewählt wurde oder "ALL" ausgewählt wurde
-            if (selectedGen == null || selectedGen.isEmpty() || "ALL".equals(selectedGen)) {
-                return true; // Akzeptiere alle Filme
-            } else {
-                return movie.getGenres() != null && movie.getGenres().stream().anyMatch(genre -> genre.toString().equals(selectedGen));
-            }
-        };
-
-        Predicate<Movie> yearPredicate = movie -> yearText.isEmpty()
-                || String.valueOf(movie.getReleaseYear()).equals(yearText);
-
-        Predicate<Movie> ratingPredicate = movie -> ratingText.isEmpty()
-                || (movie.getRating() >= Double.parseDouble(ratingText));
-
-        Predicate<Movie> combinedPredicate = textPredicate.and(genrePredicate).and(yearPredicate).and(ratingPredicate);
-
-        this.filteredMovies.setPredicate(combinedPredicate);
+    public static List<Movie> filterAndSortMovies(List<Movie> movies,String query,String genre,
+                                                  String releaseYear,String rating,Sort sortOrder) {
+        try {
+            movies = MovieAPI.filterMovies(query,genre,releaseYear,rating);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if(sortOrder == Sort.ASCENDING)
+            movies=sortMovies(movies,true);
+        else if (sortOrder == Sort.DESCENDING)
+            movies=sortMovies(movies,false);
+        return movies;
     }
 
     String getMostPopularActor(List<Movie> movies){

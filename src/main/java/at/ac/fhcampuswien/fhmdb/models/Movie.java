@@ -125,8 +125,8 @@ public class Movie {
         this.rating = rating;
     }
     public static List<Movie> initializeMovies() throws IOException {
-        MovieAPI movieAPI = new MovieAPI();
-        return movieAPI.getAllMovies();
+        // TODO add some dummy data here
+        return MovieAPI.getAllMovies();
     }
     /*
     public static List<Movie> initializeMovies(){
@@ -178,5 +178,19 @@ public class Movie {
                 ", mainCast=" + mainCast +
                 ", rating=" + rating +
                 '}';
+    }
+
+    public String getDetail() {
+        return "Runtime " + getLengthInMinutes() + "m, Released in " + getReleaseYear() + ", Rating " + getRating() + "/10\n\n" +
+                getDescription() + "\n\n" +
+                getGenreString();
+    }
+    public String getDetailLong() {
+        return "Runtime " + getLengthInMinutes() + "m, Released in " + getReleaseYear() + ", Rating " + getRating() + "/10\n\n" +
+                getDescription() + "\n\n" +
+                "Directors: " + String.join(", ", getDirectors()) + "\n" +
+                "Writers: " + String.join(", ", getWriters()) + "\n" +
+                "Main Cast: " + String.join(", ", getMainCast()) + "\n\n" +
+                getGenreString();
     }
 }

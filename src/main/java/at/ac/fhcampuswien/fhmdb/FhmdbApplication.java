@@ -3,6 +3,7 @@ package at.ac.fhcampuswien.fhmdb;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -16,6 +17,8 @@ public class FhmdbApplication extends Application {
         scene.getStylesheets().add(Objects.requireNonNull(FhmdbApplication.class.getResource("styles.css")).toExternalForm());
         stage.setTitle("FHMDb");
         stage.setScene(scene);
+        Image icon = new Image(getClass().getResourceAsStream("film.PNG"));
+        stage.getIcons().add(icon);
         stage.show();
     }
 

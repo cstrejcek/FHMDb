@@ -21,15 +21,20 @@
             </padding>
          </Label>
          <Label styleClass="text-white" stylesheets="@styles.css" text="Welcome to FHMDb!" />
+         <Label fx:id="moviesLabel" text="Showing 0 movies">
+            <font>
+               <Font name="System Italic" size="12.0" />
+            </font>
+         </Label>
       </children>
    </HBox>
-   <HBox spacing="5.0" styleClass="background-black" stylesheets="@styles.css">
+   <HBox prefHeight="65.0" prefWidth="628.0" spacing="5.0" styleClass="background-black" stylesheets="@styles.css">
       <children>
-         <JFXButton fx:id="sortBtn" styleClass="background-blue" stylesheets="@styles.css" text="Sort (asc)" />
+         <JFXButton fx:id="sortBtn" styleClass="background-blue" stylesheets="@styles.css" text="Sort" />
          <TextField fx:id="searchField" prefHeight="25.0" prefWidth="170.0" promptText="Search FHMDb" />
-         <JFXComboBox fx:id="genreComboBox" focusColor="#f5c518" prefHeight="25.0" prefWidth="85.0" styleClass="filter-combo-box" stylesheets="@styles.css" />
-         <TextField fx:id="releaseYearField" prefHeight="25.0" prefWidth="100.0" promptText="Filter by Release Year" />
-         <TextField fx:id="ratingField" prefHeight="25.0" prefWidth="100.0" promptText="Filter by Rating" />
+         <JFXComboBox fx:id="genreComboBox" focusColor="#f5c518" prefHeight="25.0" prefWidth="111.0" promptText="Filter By Genre" styleClass="filter-combo-box" stylesheets="@styles.css" />
+         <JFXComboBox fx:id="releaseYearComboBox" focusColor="#f5c518" prefWidth="150.0" promptText="Filter By Release Year" styleClass="filter-combo-box" stylesheets="@styles.css" />
+         <JFXComboBox fx:id="fromRatingComboBox" focusColor="#f5c518" prefWidth="150.0" promptText="Filter By From Rating" styleClass="filter-combo-box" stylesheets="@styles.css" />
          <JFXButton fx:id="searchBtn" styleClass="background-blue" stylesheets="@styles.css" text="Filter" />
       </children>
       <VBox.margin>
@@ -39,5 +44,5 @@
          <Insets bottom="20.0" left="10.0" top="20.0" />
       </padding>
    </HBox>
-   <JFXListView fx:id="movieListView" style="-fx-background-color: black;" styleClass="background-black" stylesheets="@styles.css" VBox.vgrow="ALWAYS" />
+   <JFXListView fx:id="movieListView" prefHeight="230.0" prefWidth="601.0" style="-fx-background-color: black;" styleClass="background-black" stylesheets="@styles.css" VBox.vgrow="ALWAYS" />
 </VBox>
