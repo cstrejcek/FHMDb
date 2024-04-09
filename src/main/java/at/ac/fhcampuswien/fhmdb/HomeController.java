@@ -48,7 +48,7 @@ public class HomeController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
-            movies = loadMovies(movies);
+            movies = loadMovies();
             moviesLabel.setText("Showing " + movies.size() + " movies");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -92,10 +92,10 @@ public class HomeController implements Initializable {
             String selectedGen = genreComboBox.getSelectionModel().getSelectedItem() == null? "" : genreComboBox.getSelectionModel().getSelectedItem().toString();
             String yearText = releaseYearComboBox.getSelectionModel().getSelectedItem() == null ? "" : releaseYearComboBox.getSelectionModel().getSelectedItem().toString();
             String ratingText = fromRatingComboBox.getSelectionModel().getSelectedItem() == null ? "" : fromRatingComboBox.getSelectionModel().getSelectedItem().toString();
-                movies = filterAndSortMovies(movies,searchText,selectedGen,yearText,ratingText,Sort.UNSORTED);
-                sortBtn.setText("Sort");
-                movieListView.setItems(FXCollections.observableArrayList(movies));
-                moviesLabel.setText("Showing " + movies.size() + " movies");
+            movies = filterAndSortMovies(searchText,selectedGen,yearText,ratingText,Sort.UNSORTED);
+            sortBtn.setText("Sort");
+            movieListView.setItems(FXCollections.observableArrayList(movies));
+            moviesLabel.setText("Showing " + movies.size() + " movies");
         });
 
         // Sort button example:
@@ -113,7 +113,7 @@ public class HomeController implements Initializable {
         });
     }
 
-    public static List<Movie> loadMovies(List<Movie> movies) throws IOException {
+    public static List<Movie> loadMovies() throws IOException {
         return Movie.initializeMovies();
     }
 
@@ -125,8 +125,10 @@ public class HomeController implements Initializable {
         }
         return movies;
     }
-    public static List<Movie> filterAndSortMovies(List<Movie> movies,String query,String genre,
+
+    public static List<Movie> filterAndSortMovies(String query,String genre,
                                                   String releaseYear,String rating,Sort sortOrder) {
+        List<Movie> movies;
         try {
             movies = MovieAPI.filterMovies(query,genre,releaseYear,rating);
         } catch (IOException e) {
@@ -139,20 +141,35 @@ public class HomeController implements Initializable {
         return movies;
     }
 
-    String getMostPopularActor(List<Movie> movies){
+    public static String getMostPopularActor(List<Movie> movies){
         Map<String, Long> actorCounts = movies.stream()
-                .flatMap(movie -> movie.getMainCast().stream()) //stream of whole cast
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())); // group and count entries
+                .flatMap(movie -> movie.getMainCast().stream()) // Stream of whole cast
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())); // Group and count entries
 
-        String mostPopularActor = actorCounts.entrySet().stream()
-                .max(Map.Entry.comparingByValue()) // Vergleiche nach der Anzahl der Vorkommen
-                .map(Map.Entry::getKey) // Extrahiere den Schauspieler
-                .orElse(null); // Falls kein Schauspieler gefunden wurde
+        // Find the maximum count
+        Long maxCount = actorCounts.values().stream()
+                .max(Long::compareTo)
+                .orElse(0L);
 
-        return mostPopularActor;
+        // Check if there is more than one actor with the highest count
+        boolean hasTie = actorCounts.values().stream()
+                .filter(count -> count.equals(maxCount))
+                .count() > 1;
+
+        // If there is a tie, return an empty string; otherwise, return the most popular actor
+        if (hasTie) {
+            return "";
+        } else {
+            String mostPopularActor = actorCounts.entrySet().stream()
+                    .filter(entry -> entry.getValue().equals(maxCount))
+                    .map(Map.Entry::getKey)
+                    .findFirst()
+                    .orElse(null); // If no actor found
+            return mostPopularActor;
+        }
     }
 
-    int getLongestMovieTitle(List<Movie> movies) {
+    public static int getLongestMovieTitle(List<Movie> movies) {
         int maxLength = movies.stream()
                 .map(Movie::getTitle)
                 .mapToInt(String::length)// es wird in int umgewandelt
@@ -162,15 +179,17 @@ public class HomeController implements Initializable {
         return maxLength;
     }
 
-    long countMoviesFrom(List<Movie> movies, String director) {
+    public static long countMoviesFrom(List<Movie> movies, String director) {
         long count = movies.stream()
-                .filter(movie -> director.equals(movie.getDirectors()))
+                .filter(movie -> movie.getDirectors().contains(director))
                 .count(); //zählt die gefilterten Filme
 
         return count; //Anzahl der Filme wird zurückgegeben
     }
 
-    List<Movie> getMoviesBetweenYears(List<Movie> movies, int startYear, int endYear) {
+    public static List<Movie> getMoviesBetweenYears(List<Movie> movies, int startYear, int endYear) {
+        if(Math.abs(startYear)>Math.abs(endYear))
+            throw new IllegalArgumentException("Start Year needs to be lower than or same as End Year");
         List<Movie> filteredMovies = movies.stream()
                 .filter(movie -> movie.getReleaseYear() >= startYear && movie.getReleaseYear() <= endYear)
                 .collect(Collectors.toList()); //Sammeln der Filme in einer Lister

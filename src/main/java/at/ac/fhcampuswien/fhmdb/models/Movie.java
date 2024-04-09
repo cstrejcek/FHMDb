@@ -52,6 +52,20 @@ public class Movie {
         this.genres = genres;
         this.mainCast = mainCast;
     }
+    public Movie(String title, String description,List<Genre> genres,List<String> mainCast,List<String> directors,
+                 List<String> writers,int releaseYear,double rating,int lengthInMinutes,String id,String imgUrl) {
+        this.title = title;
+        this.description = description;
+        this.genres = genres;
+        this.mainCast = mainCast;
+        this.directors = directors;
+        this.writers = writers;
+        this.releaseYear = releaseYear;
+        this.rating = rating;
+        this.lengthInMinutes = lengthInMinutes;
+        this.id = id;
+        this.imgUrl = imgUrl;
+    }
     public String getId() {
         return id;
     }

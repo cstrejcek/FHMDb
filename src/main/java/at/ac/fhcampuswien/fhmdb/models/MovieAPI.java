@@ -79,10 +79,10 @@ public class MovieAPI {
 
     public static List<Movie> filterMovies(String query, String genre,String releaseYear,String rating) throws IOException {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL).newBuilder();
-        urlBuilder.addQueryParameter("query", query);
-        urlBuilder.addQueryParameter("genre", genre);
-        urlBuilder.addQueryParameter("releaseYear", releaseYear);
-        urlBuilder.addQueryParameter("ratingFrom", rating);
+        urlBuilder.addQueryParameter("query", query == null? "":query);
+        urlBuilder.addQueryParameter("genre", genre == null? "":genre);
+        urlBuilder.addQueryParameter("releaseYear", releaseYear == null? "":releaseYear);
+        urlBuilder.addQueryParameter("ratingFrom", rating == null? "":rating);
         String url = urlBuilder.build().toString();
         Request request = new Request.Builder()
                 .url(url)
