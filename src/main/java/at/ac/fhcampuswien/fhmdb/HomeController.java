@@ -158,7 +158,7 @@ public class HomeController implements Initializable {
 
         // If there is a tie, return an empty string; otherwise, return the most popular actor
         if (hasTie) {
-            return "";
+            return null;
         } else {
             String mostPopularActor = actorCounts.entrySet().stream()
                     .filter(entry -> entry.getValue().equals(maxCount))
@@ -188,7 +188,7 @@ public class HomeController implements Initializable {
     }
 
     public static List<Movie> getMoviesBetweenYears(List<Movie> movies, int startYear, int endYear) {
-        if(Math.abs(startYear)>Math.abs(endYear))
+        if(startYear>endYear)
             throw new IllegalArgumentException("Start Year needs to be lower than or same as End Year");
         List<Movie> filteredMovies = movies.stream()
                 .filter(movie -> movie.getReleaseYear() >= startYear && movie.getReleaseYear() <= endYear)

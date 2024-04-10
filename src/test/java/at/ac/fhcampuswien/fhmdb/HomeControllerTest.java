@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class HomeControllerTest {
 
-    //TESTS FOR 4 STREAM METHODS -> 8 Tests
+    //TESTS FOR 4 STREAM METHODS -> 12 Tests
     @Test
     public void get_most_popular_actor_from_movies() {
         List<Movie> movies = Arrays.asList(
@@ -63,7 +63,15 @@ class HomeControllerTest {
 
         String actual = HomeController.getMostPopularActor(movies);
 
-        assertTrue(actual.isEmpty());
+        assertEquals(null, actual);
+    }
+    @Test
+    public void get_most_popular_actor_from_movies_with_empty_movie_list() {
+        List<Movie> movies = Arrays.asList();
+
+        String actual = HomeController.getMostPopularActor(movies);
+
+        assertEquals(null, actual);
     }
 
     @Test
@@ -90,6 +98,14 @@ class HomeControllerTest {
         int actual = HomeController.getLongestMovieTitle(movies);
 
         assertEquals(29,actual);
+    }
+    @Test
+    public void get_longest_movie_title_from_movies_with_empty_movie_list() {
+        List<Movie> movies = Arrays.asList();
+
+        int actual = HomeController.getLongestMovieTitle(movies);
+
+        assertEquals(0,actual);
     }
 
     @Test
@@ -143,6 +159,14 @@ class HomeControllerTest {
 
         assertTrue(actual == 0.0);
     }
+    @Test
+    public void count_movies_from_director_with_empty_movie_list() {
+        List<Movie> movies = Arrays.asList();
+
+        long actual = HomeController.countMoviesFrom(movies, "Quentin Tarantino");
+
+        assertEquals(0, actual);
+    }
 
     @Test
     public void get_movies_between_years() {
@@ -170,7 +194,14 @@ class HomeControllerTest {
         List<Movie> expected = Arrays.asList(movies.get(2), movies.get(3));
         assertEquals(expected, actual);
     }
+    @Test
+    public void get_movies_between_years_with_empty_movie_list() {
+        List<Movie> movies = Arrays.asList();
 
+        List<Movie> actual = HomeController.getMoviesBetweenYears(movies, 1998, 2000);
+
+        assertTrue(actual.isEmpty());
+    }
     @Test
     public void get_movies_between_years_on_same_start_and_end_year() {
         List<Movie> movies = Arrays.asList(
@@ -224,7 +255,7 @@ class HomeControllerTest {
 
     }
 
-    //TESTS FOR FILTER AND SORTING
+    //TESTS FOR FILTER AND SORTING -> 15 Tests
     @Test
     public void movies_are_sorted_in_ascending_order() {
         List<Movie> movies = Arrays.asList(
