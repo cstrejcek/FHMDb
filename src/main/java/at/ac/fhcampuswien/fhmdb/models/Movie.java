@@ -16,6 +16,7 @@ public class Movie {
     private List<String> directors;
     private List<String> writers;
     private double rating;
+    private boolean hide;
 
     public String getGenreString() {
         String genresString = "";
@@ -206,5 +207,13 @@ public class Movie {
                 "Writers: " + String.join(", ", getWriters()) + "\n" +
                 "Main Cast: " + String.join(", ", getMainCast()) + "\n\n" +
                 getGenreString();
+    }
+
+    public boolean isHide() {
+        return hide;
+    }
+
+    public void setHide(boolean hide) {
+        this.hide = hide;
     }
 }

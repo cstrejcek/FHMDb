@@ -2,6 +2,7 @@ package at.ac.fhcampuswien.fhmdb;
 
 import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -12,7 +13,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class HomeControllerTest {
-
+    @BeforeEach
+    public void setup(){
+        
+    }
     //TESTS FOR 4 STREAM METHODS -> 12 Tests
     @Test
     public void get_most_popular_actor_from_movies() {

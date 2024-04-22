@@ -20,11 +20,15 @@ public class MovieCell extends ListCell<Movie> {
     private final VBox layout = new VBox(titleLayout, detail);
     private final HBox contentLayout = new HBox(imageView, layout);
 
+    public MovieCell(String buttonText){
+        //TODO set Button Text for Add/Remove Watchlist
+        //TODO Callback for ButtonClick(add second parameter)
+    }
+
     @Override
     protected void updateItem(Movie movie, boolean empty) {
         super.updateItem(movie, empty);
-
-        if (empty || movie == null) {
+        if (empty || movie == null || movie.isHide()) {
             setText(null);
             setGraphic(null);
             contentLayout.setVisible(false);

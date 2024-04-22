@@ -1,6 +1,7 @@
 module at.ac.fhcampuswien.fhmdb {
     requires javafx.controls;
     requires javafx.fxml;
+    requires ormlite.jdbc;
 
     requires com.jfoenix;
     requires com.opencsv;
@@ -11,4 +12,5 @@ module at.ac.fhcampuswien.fhmdb {
     exports at.ac.fhcampuswien.fhmdb;
     exports at.ac.fhcampuswien.fhmdb.models;
     opens at.ac.fhcampuswien.fhmdb.models to com.google.gson;
+    opens at.ac.fhcampuswien.fhmdb.models.database to ormlite.jdbc;
 }

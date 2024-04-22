@@ -3,27 +3,41 @@ package at.ac.fhcampuswien.fhmdb;
 import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
 import at.ac.fhcampuswien.fhmdb.models.MovieAPI;
+import at.ac.fhcampuswien.fhmdb.models.database.WatchlistMovieEntity;
+import at.ac.fhcampuswien.fhmdb.models.database.WatchlistRepository;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXListView;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class HomeController implements Initializable {
     @FXML
+    public RadioMenuItem radioMenuItemHome;
+    @FXML
+    public RadioMenuItem radioMenuItemWatchlist;
+    @FXML
+    public MenuItem menuItemExit;
+    @FXML
+    public MenuItem menuItemAbout;
+    @FXML
     public JFXButton searchBtn;
-
+    @FXML
+    public Label titleLabel;
     @FXML
     public Label moviesLabel;
 
@@ -45,18 +59,20 @@ public class HomeController implements Initializable {
 
     private List<Movie> movies;
 
+    private boolean showWatchlist = false;
+    ContextMenu contextMenuMovieList;
+    MenuItem menuItemContextMenu;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
             movies = loadMovies();
-            moviesLabel.setText("Showing " + movies.size() + " movies");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         // initialize UI stuff
-        movieListView.setItems(FXCollections.observableArrayList(movies));   // set data of observable list to list view
-        movieListView.setCellFactory(movieListView -> new MovieCell()); // use custom cell factory to display data
+        updateMovieItems();
 
         // TODO add genre filter items with genreComboBox.getItems().addAll(...)
         genreComboBox.setPromptText("Filter by Genre");
@@ -75,14 +91,11 @@ public class HomeController implements Initializable {
         releaseYearComboBox.getItems().addAll(releaseYears);
 
         fromRatingComboBox.setPromptText("Filter by From Rating");
-        //Extract unique ratings from the list of movies using streams
-        ObservableList<Double> fromRatings = movies.stream()
-                .map(Movie::getRating)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+        //From 1 to 9
         fromRatingComboBox.getItems().add("");
-        fromRatingComboBox.getItems().addAll(fromRatings);
+        for(int i = 1; i<10;i++){
+            fromRatingComboBox.getItems().add(i);
+        }
 
 
         // TODO add event handlers to buttons and call the regarding methods
@@ -94,8 +107,7 @@ public class HomeController implements Initializable {
             String ratingText = fromRatingComboBox.getSelectionModel().getSelectedItem() == null ? "" : fromRatingComboBox.getSelectionModel().getSelectedItem().toString();
             movies = filterAndSortMovies(searchText,selectedGen,yearText,ratingText,Sort.UNSORTED);
             sortBtn.setText("Sort");
-            movieListView.setItems(FXCollections.observableArrayList(movies));
-            moviesLabel.setText("Showing " + movies.size() + " movies");
+            updateMovieItems();
         });
 
         // Sort button example:
@@ -109,10 +121,72 @@ public class HomeController implements Initializable {
                 HomeController.sortMovies(movies, false);
                 sortBtn.setText("Sort (asc)");
             }
-            movieListView.setItems(FXCollections.observableArrayList(movies));
+            updateMovieItems();
+        });
+        menuItemExit.setOnAction(actionEvent -> {
+            Platform.exit();
+        });
+        menuItemAbout.setOnAction(actionEvent -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("About Fhmdb");
+            alert.setHeaderText("");
+            alert.setContentText("Version 3.0.0\n\nAuthor: Corina Strejcek & Damar Rumeysa\n\nCopyright © 2024");
+            alert.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("film.PNG"))));
+
+            // Show the dialog
+            alert.showAndWait();
+        });
+        radioMenuItemHome.setOnAction(actionEvent -> {
+            showWatchlist=false;
+            updateMovieItems();
+        });
+        radioMenuItemWatchlist.setOnAction(actionEvent -> {
+            showWatchlist=true;
+            updateMovieItems();
         });
     }
+    private void updateMovieItems(){
+        String menuItemContextMenuText;
+        if(showWatchlist){
+            menuItemContextMenuText="Go to Home View";
+            radioMenuItemWatchlist.setSelected(true);
+            radioMenuItemHome.setSelected(false);
+            titleLabel.setText("Watchlist");
+            movieListView.setCellFactory(movieListView -> new MovieCell("Remove"));
+            WatchlistRepository rep = new WatchlistRepository();
+            List<WatchlistMovieEntity>  list = new ArrayList<>();
 
+            try {
+                list = rep.getWatchlist();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            for(Movie movie:movies){
+                movie.setHide(true);
+                for(WatchlistMovieEntity mi:list){
+                    if(movie.getId().equals(mi.getApiId())){
+                        movie.setHide(false);
+                    }
+                }
+            }
+        } else {
+            menuItemContextMenuText="Go to Watchlist";
+            radioMenuItemWatchlist.setSelected(false);
+            radioMenuItemHome.setSelected(true);
+            titleLabel.setText("FHMDb Home");
+            movieListView.setCellFactory(movieListView -> new MovieCell("Add to Watchlist"));
+            for(Movie movie:movies){
+                movie.setHide(false);
+            }
+        }
+        movieListView.setItems(FXCollections.observableArrayList(movies));
+        moviesLabel.setText("Showing " + movies.stream().filter(movie -> !movie.isHide()).count() + " movies");
+        contextMenuMovieList = new ContextMenu();
+        menuItemContextMenu = new MenuItem(menuItemContextMenuText);
+        menuItemContextMenu.setOnAction(event -> {showWatchlist=!showWatchlist;updateMovieItems();});
+        contextMenuMovieList.getItems().add(menuItemContextMenu);
+        movieListView.setContextMenu(contextMenuMovieList);
+    }
     public static List<Movie> loadMovies() throws IOException {
         return Movie.initializeMovies();
     }
@@ -155,8 +229,7 @@ public class HomeController implements Initializable {
         boolean hasTie = actorCounts.values().stream()
                 .filter(count -> count.equals(maxCount))
                 .count() > 1;
-
-        // If there is a tie, return an empty string; otherwise, return the most popular actor
+        
         if (hasTie) {
             return null;
         } else {
