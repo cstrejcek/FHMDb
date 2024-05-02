@@ -58,6 +58,7 @@ public class HomeController implements Initializable {
     public JFXButton sortBtn;
 
     private List<Movie> movies;
+    private List<Movie> moviesWatchlist;
 
     private boolean showWatchlist = false;
     ContextMenu contextMenuMovieList;
@@ -158,34 +159,34 @@ public class HomeController implements Initializable {
 
             try {
                 list = rep.getWatchlist();
+                moviesWatchlist = new ArrayList<>();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
             for(Movie movie:movies){
-                movie.setHide(true);
                 for(WatchlistMovieEntity mi:list){
                     if(movie.getId().equals(mi.getApiId())){
-                        movie.setHide(false);
+                        moviesWatchlist.add(movie);
                     }
                 }
             }
+            movieListView.setItems(FXCollections.observableArrayList(moviesWatchlist));
+            moviesLabel.setText("Showing " + moviesWatchlist.size() + " movies");
         } else {
             menuItemContextMenuText="Go to Watchlist";
             radioMenuItemWatchlist.setSelected(false);
             radioMenuItemHome.setSelected(true);
             titleLabel.setText("FHMDb Home");
             movieListView.setCellFactory(movieListView -> new MovieCell("Add to Watchlist"));
-            for(Movie movie:movies){
-                movie.setHide(false);
-            }
+            movieListView.setItems(FXCollections.observableArrayList(movies));
+            moviesLabel.setText("Showing " + movies.size() + " movies");
         }
-        movieListView.setItems(FXCollections.observableArrayList(movies));
-        moviesLabel.setText("Showing " + movies.stream().filter(movie -> !movie.isHide()).count() + " movies");
         contextMenuMovieList = new ContextMenu();
         menuItemContextMenu = new MenuItem(menuItemContextMenuText);
         menuItemContextMenu.setOnAction(event -> {showWatchlist=!showWatchlist;updateMovieItems();});
         contextMenuMovieList.getItems().add(menuItemContextMenu);
         movieListView.setContextMenu(contextMenuMovieList);
+        movieListView.refresh();
     }
     public static List<Movie> loadMovies() throws IOException {
         return Movie.initializeMovies();
