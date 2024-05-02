@@ -37,6 +37,8 @@ public class HomeController implements Initializable {
     @FXML
     public JFXButton searchBtn;
     @FXML
+    public JFXButton viewBtn;
+    @FXML
     public Label titleLabel;
     @FXML
     public Label moviesLabel;
@@ -145,6 +147,10 @@ public class HomeController implements Initializable {
             showWatchlist=true;
             updateMovieItems();
         });
+        viewBtn.setOnAction(actionEvent -> {
+            showWatchlist=!showWatchlist;
+            updateMovieItems();
+        });
     }
     private void updateMovieItems(){
         String menuItemContextMenuText;
@@ -172,6 +178,7 @@ public class HomeController implements Initializable {
             }
             movieListView.setItems(FXCollections.observableArrayList(moviesWatchlist));
             moviesLabel.setText("Showing " + moviesWatchlist.size() + " movies");
+            viewBtn.setText("Home View");
         } else {
             menuItemContextMenuText="Go to Watchlist";
             radioMenuItemWatchlist.setSelected(false);
@@ -180,6 +187,7 @@ public class HomeController implements Initializable {
             movieListView.setCellFactory(movieListView -> new MovieCell("Add to Watchlist"));
             movieListView.setItems(FXCollections.observableArrayList(movies));
             moviesLabel.setText("Showing " + movies.size() + " movies");
+            viewBtn.setText("Watchlist");
         }
         contextMenuMovieList = new ContextMenu();
         menuItemContextMenu = new MenuItem(menuItemContextMenuText);
