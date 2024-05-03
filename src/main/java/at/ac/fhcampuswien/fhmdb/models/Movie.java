@@ -1,5 +1,7 @@
 package at.ac.fhcampuswien.fhmdb.models;
 
+import at.ac.fhcampuswien.fhmdb.exception.MovieAPIException;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -138,7 +140,7 @@ public class Movie {
     public void setRating(double rating) {
         this.rating = rating;
     }
-    public static List<Movie> initializeMovies() throws IOException {
+    public static List<Movie> initializeMovies() throws MovieAPIException {
         // TODO add some dummy data here
         return MovieAPI.getAllMovies();
     }

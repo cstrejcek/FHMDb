@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.fhmdb.models.database;
 
+import at.ac.fhcampuswien.fhmdb.exception.DatabaseException;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
@@ -16,34 +17,48 @@ public class DatabaseManager {
     private static DatabaseManager instance;
     private Dao<MovieEntity,Long> movieDao;
     private Dao<WatchlistMovieEntity,Long> watchlistDao;
-    private DatabaseManager(){
+
+    private DatabaseManager() throws DatabaseException{
         try{
             createConnectionSource();
             movieDao = DaoManager.createDao(connectionSource,MovieEntity.class);
             watchlistDao = DaoManager.createDao(connectionSource,WatchlistMovieEntity.class);
             createTables();
         } catch (SQLException e){
-            System.out.println(e.getMessage());
+            throw new DatabaseException(e.getMessage(), e);
         }
     }
-    public static DatabaseManager getInstance(){
+    public static DatabaseManager getInstance() throws DatabaseException{
         if(instance ==null) {
-            instance = new DatabaseManager();
+            try {
+                instance = new DatabaseManager();
+            } catch (SQLException se){
+                throw new DatabaseException(se.getMessage(), se);
+            }
         }
         return instance;
     }
 
-    private static void createConnectionSource() throws SQLException {
-        connectionSource = new JdbcConnectionSource(DB_URL,user,password);
-
+    private static void createConnectionSource() throws DatabaseException {
+        try {
+            connectionSource = new JdbcConnectionSource(DB_URL,user,password);
+        } catch (SQLException se) {
+            throw new DatabaseException(se.getMessage(), se);
+        }
     }
     public static ConnectionSource getConnectionSource(){
         return connectionSource;
     }
-    private static void createTables() throws SQLException {
-        TableUtils.createTableIfNotExists(connectionSource, MovieEntity.class);
-        TableUtils.createTableIfNotExists(connectionSource, WatchlistMovieEntity.class);
+
+    private static void createTables() throws DatabaseException {
+        try {
+            TableUtils.createTableIfNotExists(connectionSource, MovieEntity.class);
+            TableUtils.createTableIfNotExists(connectionSource, WatchlistMovieEntity.class);
+        } catch (SQLException se) {
+            throw new DatabaseException(se.getMessage(), se);
+        }
     }
+
     Dao<WatchlistMovieEntity,Long> getWatchlistDao(){
         return watchlistDao;
     }
@@ -51,3 +66,12 @@ public class DatabaseManager {
         return movieDao;
     }
 }
+
+    /*private static void createConnectionSource() throws SQLException {
+        connectionSource = new JdbcConnectionSource(DB_URL,user,password);
+
+    }*/
+   /*private static void createTables() throws SQLException {
+        TableUtils.createTableIfNotExists(connectionSource, MovieEntity.class);
+        TableUtils.createTableIfNotExists(connectionSource, WatchlistMovieEntity.class);
+    }*/

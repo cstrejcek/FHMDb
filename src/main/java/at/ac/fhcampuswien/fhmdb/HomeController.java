@@ -1,10 +1,12 @@
 package at.ac.fhcampuswien.fhmdb;
 
+import at.ac.fhcampuswien.fhmdb.exception.DatabaseException;
+import at.ac.fhcampuswien.fhmdb.exception.MovieAPIException;
 import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
 import at.ac.fhcampuswien.fhmdb.models.MovieAPI;
-import at.ac.fhcampuswien.fhmdb.models.database.WatchlistMovieEntity;
-import at.ac.fhcampuswien.fhmdb.models.database.WatchlistRepository;
+import at.ac.fhcampuswien.fhmdb.models.database.*;
+import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
@@ -66,12 +68,62 @@ public class HomeController implements Initializable {
     ContextMenu contextMenuMovieList;
     MenuItem menuItemContextMenu;
 
+    WatchlistRepository watchlistRepository;
+    List<WatchlistMovieEntity> watchlist;
+    static MovieRepository movieRepository;
+    static List<MovieEntity> movieEntities;
+
+    ClickEventHandler<Movie> onAddToWatchlistClicked = movie -> {
+        // Add to watchlist
+        WatchlistMovieEntity movieEntity = new WatchlistMovieEntity();
+        movieEntity.setApiId(movie.getId());
+        try {
+            watchlistRepository.addToWatchlist(movieEntity);
+            if (sortBtn.getText().equals("Sort (asc)") || sortBtn.getText().equals("Sort")) {
+                HomeController.sortMovies(moviesWatchlist, false);
+            } else {
+                HomeController.sortMovies(moviesWatchlist, true);
+            }
+            loadWatchlist();
+            updateMovieItems();
+        }catch (DatabaseException dbe) {
+            showAlert(Alert.AlertType.ERROR, "Error", "Could not save to watchlist. Exiting Application.");
+            Platform.exit();
+        }
+    };
+    ClickEventHandler<Movie> onRemoveFromWatchlistClicked = movie -> {
+        // Remove from watchlist
+        for(WatchlistMovieEntity mi:watchlist){
+            if(movie.getId().equals(mi.getApiId())){
+                try {
+                    watchlistRepository.removeFromWatchlist(movie.getId());
+                    loadWatchlist();
+                    updateMovieItems();
+                }catch (DatabaseException dbe) {
+                    showAlert(Alert.AlertType.ERROR, "Error", "Could not remove from watchlist. Exiting Application.");
+                    Platform.exit();
+                }
+            }
+        }
+    };
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
             movies = loadMovies();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            //save movies to DB Cache at beginning of the application
+            if(!movies.isEmpty())
+                saveMoviesToDBCache(movies);
+            loadWatchlist();
+        } catch (MovieAPIException e) {
+            //try to load movies from DB cache
+            movies = loadMoviesFromDBCache();
+            loadWatchlist();
+            if(!movies.isEmpty()) {
+                showAlert(Alert.AlertType.INFORMATION, "Information", "Could not load movies from API. Loaded movies from DB cache.");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Could neither load movies from API nor from DB Cache. Exiting Application.");
+                Platform.exit();
+            }
         }
 
         // initialize UI stuff
@@ -133,7 +185,7 @@ public class HomeController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("About Fhmdb");
             alert.setHeaderText("");
-            alert.setContentText("Version 3.0.0\n\nAuthor: Corina Strejcek & Damar Rumeysa\n\nCopyright © 2024");
+            alert.setContentText("Version 3.0.0\n\nAuthor: Corina Strejcek & Rumeysa Damar\n\nCopyright © 2024");
             alert.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("film.PNG"))));
 
             // Show the dialog
@@ -159,23 +211,7 @@ public class HomeController implements Initializable {
             radioMenuItemWatchlist.setSelected(true);
             radioMenuItemHome.setSelected(false);
             titleLabel.setText("Watchlist");
-            movieListView.setCellFactory(movieListView -> new MovieCell("Remove"));
-            WatchlistRepository rep = new WatchlistRepository();
-            List<WatchlistMovieEntity>  list = new ArrayList<>();
-
-            try {
-                list = rep.getWatchlist();
-                moviesWatchlist = new ArrayList<>();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-            for(Movie movie:movies){
-                for(WatchlistMovieEntity mi:list){
-                    if(movie.getId().equals(mi.getApiId())){
-                        moviesWatchlist.add(movie);
-                    }
-                }
-            }
+            movieListView.setCellFactory(listView -> new MovieCell("Remove from Watchlist",onRemoveFromWatchlistClicked,new ArrayList<>()));
             movieListView.setItems(FXCollections.observableArrayList(moviesWatchlist));
             moviesLabel.setText("Showing " + moviesWatchlist.size() + " movies");
             viewBtn.setText("Home View");
@@ -184,7 +220,7 @@ public class HomeController implements Initializable {
             radioMenuItemWatchlist.setSelected(false);
             radioMenuItemHome.setSelected(true);
             titleLabel.setText("FHMDb Home");
-            movieListView.setCellFactory(movieListView -> new MovieCell("Add to Watchlist"));
+            movieListView.setCellFactory(listView -> new MovieCell("Add to Watchlist",onAddToWatchlistClicked,moviesWatchlist));
             movieListView.setItems(FXCollections.observableArrayList(movies));
             moviesLabel.setText("Showing " + movies.size() + " movies");
             viewBtn.setText("Watchlist");
@@ -196,8 +232,28 @@ public class HomeController implements Initializable {
         movieListView.setContextMenu(contextMenuMovieList);
         movieListView.refresh();
     }
-    public static List<Movie> loadMovies() throws IOException {
+    public static List<Movie> loadMovies() throws MovieAPIException {
         return Movie.initializeMovies();
+    }
+    private void loadWatchlist()  {
+        try {
+            watchlistRepository = new WatchlistRepository();
+            watchlist = new ArrayList<>();
+
+            watchlist = watchlistRepository.getWatchlist();
+            moviesWatchlist = new ArrayList<>();
+
+            for (Movie movie : movies) {
+                for (WatchlistMovieEntity mi : watchlist) {
+                    if (movie.getId().equals(mi.getApiId())) {
+                        moviesWatchlist.add(movie);
+                    }
+                }
+            }
+        } catch (DatabaseException dbe){
+            showAlert(Alert.AlertType.ERROR, "Error", "Coud not load internal Database. Exiting Application");
+            Platform.exit();
+        }
     }
 
     public static List<Movie> sortMovies(List<Movie> movies, boolean ascending) {
@@ -211,19 +267,58 @@ public class HomeController implements Initializable {
 
     public static List<Movie> filterAndSortMovies(String query,String genre,
                                                   String releaseYear,String rating,Sort sortOrder) {
-        List<Movie> movies;
+        List<Movie> movies = new ArrayList<>();
         try {
             movies = MovieAPI.filterMovies(query,genre,releaseYear,rating);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (MovieAPIException e) {
+            //Try to load movies from DB cache
+            movies = filterMoviesLocal(loadMoviesFromDBCache(),query,genre,releaseYear,rating);
+            showAlert(Alert.AlertType.INFORMATION, "Information", "Could not get movies from API.Loaded locally.");
+        } finally {
+            if(sortOrder == Sort.ASCENDING)
+                movies=sortMovies(movies,true);
+            else if (sortOrder == Sort.DESCENDING)
+                movies=sortMovies(movies,false);
+            return movies;
         }
-        if(sortOrder == Sort.ASCENDING)
-            movies=sortMovies(movies,true);
-        else if (sortOrder == Sort.DESCENDING)
-            movies=sortMovies(movies,false);
-        return movies;
     }
+    public static List<Movie> filterMoviesLocal(List<Movie> movies,String query,String genre,
+                                                String releaseYear,String rating) {
+        return movies.stream()
+                .filter(movie -> query == null || query == "" || movie.getTitle().toLowerCase().contains(query.toLowerCase()))
+                .filter(movie -> genre == null ||genre == "" || movie.getGenreString().contains(genre))
+                .filter(movie -> releaseYear == null || releaseYear == "" || movie.getReleaseYear()== Integer.parseInt(releaseYear) )
+                .filter(movie -> rating == null || rating == "" || movie.getRating() == Double.parseDouble(rating) )
+                .collect(Collectors.toList());
+    }
+    private static List<Movie> loadMoviesFromDBCache(){
+        try {
+            movieRepository = new MovieRepository();
+            movieEntities = movieRepository.getAllMovies();
+            return MovieEntity.toMovies(movieEntities);
+        } catch (DatabaseException dbe ){
+            showAlert(Alert.AlertType.ERROR, "Error", "Coud not load internal Database. Exiting Application.");
+            Platform.exit();
+        }
+        return new ArrayList<>();
+    }
+    private void saveMoviesToDBCache(List<Movie> movies){
+        try {
+            movieRepository = new MovieRepository();
+            movieRepository.removeAll();
+            movieRepository.addAllMovies(movies);
+        } catch (DatabaseException dbe ){
+            showAlert(Alert.AlertType.INFORMATION, "Information", "Coud not save DB Cache.");
+        }
 
+    }
+    private static void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null); // No header
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
     public static String getMostPopularActor(List<Movie> movies){
         Map<String, Long> actorCounts = movies.stream()
                 .flatMap(movie -> movie.getMainCast().stream()) // Stream of whole cast
@@ -238,7 +333,7 @@ public class HomeController implements Initializable {
         boolean hasTie = actorCounts.values().stream()
                 .filter(count -> count.equals(maxCount))
                 .count() > 1;
-        
+
         if (hasTie) {
             return null;
         } else {

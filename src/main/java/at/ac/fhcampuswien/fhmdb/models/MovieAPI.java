@@ -1,5 +1,6 @@
 package at.ac.fhcampuswien.fhmdb.models;
 
+import at.ac.fhcampuswien.fhmdb.exception.MovieAPIException;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import okhttp3.HttpUrl;
@@ -63,7 +64,7 @@ public class MovieAPI {
         gson = new Gson();
     }
 
-    public static List<Movie> getAllMovies() throws IOException {
+    public static List<Movie> getAllMovies() throws MovieAPIException {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL).newBuilder();
         String url = urlBuilder.build().toString();
         Request request = new Request.Builder()
@@ -71,13 +72,15 @@ public class MovieAPI {
                 .addHeader(USER_AGENT_HEADER, USER_AGENT_VALUE)
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            if (!response.isSuccessful()) throw new MovieAPIException("Unexpected code " + response);
             String responseBody = response.body().string();
             return gson.fromJson(responseBody, new TypeToken<List<Movie>>() {}.getType());
+        } catch (IOException ioe){
+            throw new MovieAPIException("Could not execute API call: " + ioe.getMessage(),ioe);
         }
     }
 
-    public static List<Movie> filterMovies(String query, String genre,String releaseYear,String rating) throws IOException {
+    public static List<Movie> filterMovies(String query, String genre,String releaseYear,String rating) throws MovieAPIException {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL).newBuilder();
         urlBuilder.addQueryParameter("query", query == null? "":query);
         urlBuilder.addQueryParameter("genre", genre == null? "":genre);
@@ -89,12 +92,14 @@ public class MovieAPI {
                 .addHeader(USER_AGENT_HEADER, USER_AGENT_VALUE)
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            if (!response.isSuccessful()) throw new MovieAPIException("Unexpected code " + response);
             String responseBody = response.body().string();
             return gson.fromJson(responseBody, new TypeToken<List<Movie>>() {}.getType());
+        } catch (IOException ioe){
+            throw new MovieAPIException("Could not execute API call: " + ioe.getMessage(),ioe);
         }
     }
-    public static Movie getMovie(String iD) throws IOException {
+    public static Movie getMovie(String iD) throws MovieAPIException {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL + "/" + iD).newBuilder();
         String url = urlBuilder.build().toString();
         Request request = new Request.Builder()
@@ -102,9 +107,11 @@ public class MovieAPI {
                 .addHeader(USER_AGENT_HEADER, USER_AGENT_VALUE)
                 .build();
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            if (!response.isSuccessful()) throw new MovieAPIException("Unexpected code " + response);
             String responseBody = response.body().string();
             return gson.fromJson(responseBody, new TypeToken<Movie>() {}.getType());
+        } catch (IOException ioe){
+            throw new MovieAPIException("Could not execute API call: " + ioe.getMessage(),ioe);
         }
     }
 }

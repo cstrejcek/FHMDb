@@ -11,19 +11,30 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+
 public class MovieCell extends ListCell<Movie> {
     private final Label title = new Label();
     private final Label detail = new Label();
     private final Button btnDetail = new Button("Details");
+    private final Button btnWatchlist = new Button("");
     private final ImageView imageView = new ImageView();
-    private final HBox titleLayout = new HBox(title, btnDetail); // HBox for title and button
+    private final HBox titleLayout = new HBox(title, btnDetail,btnWatchlist); // HBox for title and button
     private final VBox layout = new VBox(titleLayout, detail);
     private final HBox contentLayout = new HBox(imageView, layout);
 
-    public MovieCell(String buttonText){
+    private List<Movie> noWatchlistButton;
+
+    public MovieCell(String buttonText, ClickEventHandler<Movie> watchlistClicked, List<Movie> noWatchlistButton){
         //TODO set Button Text for Add/Remove Watchlist
         //TODO Callback for ButtonClick(add second parameter)
-    }
+            btnWatchlist.setText(buttonText);
+            btnWatchlist.setOnAction(event -> {
+                watchlistClicked.onClick(getItem());
+                //btnWatchlist.setVisible(false);
+            });
+            this.noWatchlistButton = noWatchlistButton;
+        };
 
     @Override
     protected void updateItem(Movie movie, boolean empty) {

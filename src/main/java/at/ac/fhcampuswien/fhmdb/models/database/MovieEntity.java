@@ -33,7 +33,7 @@ public class MovieEntity {
     private double rating;
 
     /*Da für das Speichern von Listen (zB directors, writers, mainCast)
-      weitere Tabellen nötig wären, werden diese ausgenommen.  */
+     weitere Tabellen nötig wären, werden diese ausgenommen.  */
 
     public static String genresToString(List<Genre> genres){
         String genresString = "";
@@ -80,7 +80,7 @@ public class MovieEntity {
             movie.setDirectors(na);
             movie.setMainCast(na);
             movie.setWriters(na);
-            movieEntities.add(me);
+            movies.add(movie);
         }
         return movies;
     }

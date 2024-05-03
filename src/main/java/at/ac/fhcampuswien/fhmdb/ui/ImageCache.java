@@ -14,6 +14,8 @@ public class ImageCache {
             return cache.get(url);
         } else {
             Image image = new Image(url);
+            if (image.isError())
+                image = new Image(ImageCache.class.getResourceAsStream("No_image_available.jpg"));
             cacheImage(url, image);
             return image;
         }
