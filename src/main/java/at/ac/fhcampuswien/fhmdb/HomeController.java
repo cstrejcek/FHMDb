@@ -70,9 +70,9 @@ public class HomeController implements Initializable {
     MenuItem menuItemContextMenu;
 
     WatchlistRepository watchlistRepository;
-    List<WatchlistMovieEntity> watchlist;
+    List<WatchlistMovieEntity>  watchlist;
     static MovieRepository movieRepository;
-    static List<MovieEntity> movieEntities;
+    static List<MovieEntity>  movieEntities;
 
     ClickEventHandler<Movie> onAddToWatchlistClicked = movie -> {
         // Add to watchlist
@@ -107,6 +107,7 @@ public class HomeController implements Initializable {
             }
         }
     };
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
@@ -162,6 +163,7 @@ public class HomeController implements Initializable {
             String yearText = releaseYearComboBox.getSelectionModel().getSelectedItem() == null ? "" : releaseYearComboBox.getSelectionModel().getSelectedItem().toString();
             String ratingText = fromRatingComboBox.getSelectionModel().getSelectedItem() == null ? "" : fromRatingComboBox.getSelectionModel().getSelectedItem().toString();
             movies = filterAndSortMovies(searchText,selectedGen,yearText,ratingText,Sort.UNSORTED);
+            loadWatchlist();
             sortBtn.setText("Sort");
             updateMovieItems();
         });
@@ -171,10 +173,12 @@ public class HomeController implements Initializable {
             if (sortBtn.getText().equals("Sort (asc)") || sortBtn.getText().equals("Sort")) {
                 // TODO sort observableMovies ascending
                 HomeController.sortMovies(movies, true);
+                HomeController.sortMovies(moviesWatchlist, true);
                 sortBtn.setText("Sort (desc)");
             } else {
                 // TODO sort observableMovies descending
                 HomeController.sortMovies(movies, false);
+                HomeController.sortMovies(moviesWatchlist, false);
                 sortBtn.setText("Sort (asc)");
             }
             updateMovieItems();
@@ -186,7 +190,7 @@ public class HomeController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("About Fhmdb");
             alert.setHeaderText("");
-            alert.setContentText("Version 3.0.0\n\nAuthor: Corina Strejcek & Rumeysa Damar\n\nCopyright © 2024");
+            alert.setContentText("Version 3.0.0\n\nAuthor: Corina Strejcek & Damar Rumeysa\n\nCopyright © 2024");
             alert.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("film.PNG"))));
 
             // Show the dialog
@@ -282,6 +286,7 @@ public class HomeController implements Initializable {
                 movies=sortMovies(movies,false);
             return movies;
         }
+
     }
     public static List<Movie> filterMoviesLocal(List<Movie> movies,String query,String genre,
                                                 String releaseYear,String rating) {
@@ -320,6 +325,7 @@ public class HomeController implements Initializable {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
     public static String getMostPopularActor(List<Movie> movies){
         Map<String, Long> actorCounts = movies.stream()
                 .flatMap(movie -> movie.getMainCast().stream()) // Stream of whole cast
@@ -374,5 +380,4 @@ public class HomeController implements Initializable {
 
         return filteredMovies;
     }
- }
-
+}

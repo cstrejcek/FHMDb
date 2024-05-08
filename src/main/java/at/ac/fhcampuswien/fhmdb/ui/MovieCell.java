@@ -26,15 +26,13 @@ public class MovieCell extends ListCell<Movie> {
     private List<Movie> noWatchlistButton;
 
     public MovieCell(String buttonText, ClickEventHandler<Movie> watchlistClicked, List<Movie> noWatchlistButton){
-        //TODO set Button Text for Add/Remove Watchlist
-        //TODO Callback for ButtonClick(add second parameter)
-            btnWatchlist.setText(buttonText);
-            btnWatchlist.setOnAction(event -> {
-                watchlistClicked.onClick(getItem());
-                //btnWatchlist.setVisible(false);
-            });
-            this.noWatchlistButton = noWatchlistButton;
-        };
+        btnWatchlist.setText(buttonText);
+        btnWatchlist.setOnAction(event -> {
+            watchlistClicked.onClick(getItem());
+            //btnWatchlist.setVisible(false);
+        });
+        this.noWatchlistButton = noWatchlistButton;
+    }
 
     @Override
     protected void updateItem(Movie movie, boolean empty) {
@@ -119,4 +117,3 @@ public class MovieCell extends ListCell<Movie> {
         }
     }
 }
-
