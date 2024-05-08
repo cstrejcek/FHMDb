@@ -46,7 +46,7 @@ public class MovieCell extends ListCell<Movie> {
         } else {
             contentLayout.setVisible(true);
             this.getStyleClass().add("movie-cell");
-            title.setText(movie.getTitle() + "   ");
+            title.setText(movie.getTitle() + " ");
             detail.setText(
                     movie.getDetail() != null
                             ? movie.getDetail()
@@ -71,10 +71,26 @@ public class MovieCell extends ListCell<Movie> {
 
             // layout
             title.fontProperty().set(title.getFont().font(20));
-            detail.setMaxWidth(this.getScene().getWidth() - 30);
+            try {
+                detail.setMaxWidth(this.getScene().getWidth() - 30);
+            }catch (NullPointerException npe){
+
+            }
+            boolean setInvisible = false;
+            for(Movie noMovie:noWatchlistButton) {
+                if (movie.getId().equals(noMovie.getId())){
+                    setInvisible = true;
+                }
+            }
+            if(setInvisible)
+                btnWatchlist.setVisible(false);
+            else{
+                btnWatchlist.setVisible(true);
+            }
             detail.setWrapText(true);
             layout.setPadding(new Insets(10));
             layout.spacingProperty().set(10);
+            titleLayout.spacingProperty().set(10);
             layout.alignmentProperty().set(javafx.geometry.Pos.CENTER_LEFT);
             btnDetail.setOnAction(event -> {
                 Dialog<Void> dialog = new Dialog<>();
