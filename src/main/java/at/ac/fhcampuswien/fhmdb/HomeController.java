@@ -1,16 +1,17 @@
 package at.ac.fhcampuswien.fhmdb;
 
+import at.ac.fhcampuswien.fhmdb.database.MovieEntity;
+import at.ac.fhcampuswien.fhmdb.database.MovieRepository;
+import at.ac.fhcampuswien.fhmdb.database.WatchlistMovieEntity;
+import at.ac.fhcampuswien.fhmdb.database.WatchlistRepository;
 import at.ac.fhcampuswien.fhmdb.exception.DatabaseException;
 import at.ac.fhcampuswien.fhmdb.exception.MovieAPIException;
 import at.ac.fhcampuswien.fhmdb.models.Genre;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
 import at.ac.fhcampuswien.fhmdb.models.MovieAPI;
-import at.ac.fhcampuswien.fhmdb.models.database.MovieEntity;
-import at.ac.fhcampuswien.fhmdb.models.database.MovieRepository;
-import at.ac.fhcampuswien.fhmdb.models.database.WatchlistMovieEntity;
-import at.ac.fhcampuswien.fhmdb.models.database.WatchlistRepository;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
+import at.ac.fhcampuswien.fhmdb.ui.sort.MovieSorter;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXListView;
@@ -73,6 +74,7 @@ public class HomeController implements Initializable {
     List<WatchlistMovieEntity>  watchlist;
     static MovieRepository movieRepository;
     static List<MovieEntity>  movieEntities;
+    private static MovieSorter movieSorter;
 
     ClickEventHandler<Movie> onAddToWatchlistClicked = movie -> {
         // Add to watchlist
@@ -80,11 +82,7 @@ public class HomeController implements Initializable {
         movieEntity.setApiId(movie.getId());
         try {
             watchlistRepository.addToWatchlist(movieEntity);
-            if (sortBtn.getText().equals("Sort (asc)") || sortBtn.getText().equals("Sort")) {
-                HomeController.sortMovies(moviesWatchlist, false);
-            } else {
-                HomeController.sortMovies(moviesWatchlist, true);
-            }
+            movieSorter.sort(moviesWatchlist);
             loadWatchlist();
             updateMovieItems();
         }catch (DatabaseException dbe) {
@@ -129,6 +127,7 @@ public class HomeController implements Initializable {
         }
 
         // initialize UI stuff
+        movieSorter = new MovieSorter();
         updateMovieItems();
 
         // TODO add genre filter items with genreComboBox.getItems().addAll(...)
@@ -162,25 +161,21 @@ public class HomeController implements Initializable {
             String selectedGen = genreComboBox.getSelectionModel().getSelectedItem() == null? "" : genreComboBox.getSelectionModel().getSelectedItem().toString();
             String yearText = releaseYearComboBox.getSelectionModel().getSelectedItem() == null ? "" : releaseYearComboBox.getSelectionModel().getSelectedItem().toString();
             String ratingText = fromRatingComboBox.getSelectionModel().getSelectedItem() == null ? "" : fromRatingComboBox.getSelectionModel().getSelectedItem().toString();
-            movies = filterAndSortMovies(searchText,selectedGen,yearText,ratingText,Sort.UNSORTED);
+            movies = filterAndSortMovies(searchText,selectedGen,yearText,ratingText);
             loadWatchlist();
-            sortBtn.setText("Sort");
             updateMovieItems();
         });
 
         // Sort button example:
         sortBtn.setOnAction(actionEvent -> {
             if (sortBtn.getText().equals("Sort (asc)") || sortBtn.getText().equals("Sort")) {
-                // TODO sort observableMovies ascending
-                HomeController.sortMovies(movies, true);
-                HomeController.sortMovies(moviesWatchlist, true);
                 sortBtn.setText("Sort (desc)");
             } else {
-                // TODO sort observableMovies descending
-                HomeController.sortMovies(movies, false);
-                HomeController.sortMovies(moviesWatchlist, false);
                 sortBtn.setText("Sort (asc)");
             }
+            movieSorter.next();
+            movieSorter.sort(movies);
+            movieSorter.sort(moviesWatchlist);
             updateMovieItems();
         });
         menuItemExit.setOnAction(actionEvent -> {
@@ -242,7 +237,7 @@ public class HomeController implements Initializable {
     }
     private void loadWatchlist()  {
         try {
-            watchlistRepository = new WatchlistRepository();
+            watchlistRepository = WatchlistRepository.getInstance();
             watchlist = new ArrayList<>();
 
             watchlist = watchlistRepository.getWatchlist();
@@ -261,17 +256,8 @@ public class HomeController implements Initializable {
         }
     }
 
-    public static List<Movie> sortMovies(List<Movie> movies, boolean ascending) {
-        if (ascending) {
-            movies.sort(Comparator.comparing(Movie::getTitle));
-        } else {
-            movies.sort(Comparator.comparing(Movie::getTitle).reversed());
-        }
-        return movies;
-    }
-
     public static List<Movie> filterAndSortMovies(String query,String genre,
-                                                  String releaseYear,String rating,Sort sortOrder) {
+                                                  String releaseYear,String rating) {
         List<Movie> movies = new ArrayList<>();
         try {
             movies = MovieAPI.filterMovies(query,genre,releaseYear,rating);
@@ -280,10 +266,7 @@ public class HomeController implements Initializable {
             movies = filterMoviesLocal(loadMoviesFromDBCache(),query,genre,releaseYear,rating);
             showAlert(Alert.AlertType.INFORMATION, "Information", "Could not get movies from API.Loaded locally.");
         } finally {
-            if(sortOrder == Sort.ASCENDING)
-                movies=sortMovies(movies,true);
-            else if (sortOrder == Sort.DESCENDING)
-                movies=sortMovies(movies,false);
+            movies=movieSorter.sort(movies);
             return movies;
         }
 
@@ -299,7 +282,7 @@ public class HomeController implements Initializable {
     }
     private static List<Movie> loadMoviesFromDBCache(){
         try {
-            movieRepository = new MovieRepository();
+            movieRepository = MovieRepository.getInstance();
             movieEntities = movieRepository.getAllMovies();
             return MovieEntity.toMovies(movieEntities);
         } catch (DatabaseException dbe ){
@@ -310,7 +293,7 @@ public class HomeController implements Initializable {
     }
     private void saveMoviesToDBCache(List<Movie> movies){
         try {
-            movieRepository = new MovieRepository();
+            movieRepository = MovieRepository.getInstance();
             movieRepository.removeAll();
             movieRepository.addAllMovies(movies);
         } catch (DatabaseException dbe ){

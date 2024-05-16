@@ -1,4 +1,4 @@
-package at.ac.fhcampuswien.fhmdb.models.database;
+package at.ac.fhcampuswien.fhmdb.database;
 
 import at.ac.fhcampuswien.fhmdb.exception.DatabaseException;
 import at.ac.fhcampuswien.fhmdb.models.Movie;
@@ -8,10 +8,17 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class MovieRepository {
+    private static MovieRepository instance;
     private Dao<MovieEntity,Long> dao;
 
-    public MovieRepository() throws DatabaseException {
+    private MovieRepository() throws DatabaseException {
         dao = DatabaseManager.getInstance().getMovieDao();
+    }
+    public static MovieRepository getInstance() throws DatabaseException {
+        if (instance == null) {
+            instance = new MovieRepository();
+        }
+        return instance;
     }
     public List<MovieEntity> getAllMovies() throws DatabaseException {
         try {
@@ -39,12 +46,3 @@ public class MovieRepository {
 
     }
 }
-  /*public List<MovieEntity> getAllMovies() throws SQLException {
-        return dao.queryForAll();
-    }*/
-    /*public int removeAll() throws SQLException {
-        return dao.deleteBuilder().delete();
-    }*/
-  /*int addAllMovies(List<Movie> movies) throws SQLException {
-        return dao.create(MovieEntity.fromMovies(movies));
-    }*/

@@ -1,4 +1,4 @@
-package at.ac.fhcampuswien.fhmdb.models.database;
+package at.ac.fhcampuswien.fhmdb.database;
 
 import at.ac.fhcampuswien.fhmdb.exception.DatabaseException;
 import com.j256.ormlite.dao.Dao;

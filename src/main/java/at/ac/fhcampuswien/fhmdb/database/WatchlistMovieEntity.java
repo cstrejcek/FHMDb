@@ -1,4 +1,4 @@
-package at.ac.fhcampuswien.fhmdb.models.database;
+package at.ac.fhcampuswien.fhmdb.database;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
