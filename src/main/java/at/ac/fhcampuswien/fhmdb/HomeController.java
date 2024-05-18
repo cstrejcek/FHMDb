@@ -12,6 +12,7 @@ import at.ac.fhcampuswien.fhmdb.models.MovieAPI;
 import at.ac.fhcampuswien.fhmdb.ui.ClickEventHandler;
 import at.ac.fhcampuswien.fhmdb.ui.MovieCell;
 import at.ac.fhcampuswien.fhmdb.ui.sort.MovieSorter;
+import at.ac.fhcampuswien.fhmdb.ui.watchlist.WatchlistObserver;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXListView;
@@ -29,7 +30,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class HomeController implements Initializable {
+public class HomeController implements Initializable, WatchlistObserver {
     @FXML
     public RadioMenuItem radioMenuItemHome;
     @FXML
@@ -129,6 +130,13 @@ public class HomeController implements Initializable {
         // initialize UI stuff
         movieSorter = new MovieSorter();
         updateMovieItems();
+
+        try {
+            watchlistRepository = WatchlistRepository.getInstance();
+            watchlistRepository.addObserver(this);
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
+        }
 
         // TODO add genre filter items with genreComboBox.getItems().addAll(...)
         genreComboBox.setPromptText("Filter by Genre");
@@ -251,7 +259,7 @@ public class HomeController implements Initializable {
                 }
             }
         } catch (DatabaseException dbe){
-            showAlert(Alert.AlertType.ERROR, "Error", "Coud not load internal Database. Exiting Application");
+            showAlert(Alert.AlertType.ERROR, "Error", "Could not load internal Database. Exiting Application");
             Platform.exit();
         }
     }
@@ -286,7 +294,7 @@ public class HomeController implements Initializable {
             movieEntities = movieRepository.getAllMovies();
             return MovieEntity.toMovies(movieEntities);
         } catch (DatabaseException dbe ){
-            showAlert(Alert.AlertType.ERROR, "Error", "Coud not load internal Database. Exiting Application.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Could not load internal Database. Exiting Application.");
             Platform.exit();
         }
         return new ArrayList<>();
@@ -362,5 +370,13 @@ public class HomeController implements Initializable {
                 .collect(Collectors.toList()); //Sammeln der Filme in einer Lister
 
         return filteredMovies;
+    }
+
+    @Override
+    public void update(String message) {
+        showAlert(Alert.AlertType.INFORMATION,"Watchlist",message);
+    }
+    public void onDestroy() {
+        watchlistRepository.removeObserver(this);
     }
 }

@@ -3,7 +3,7 @@ package at.ac.fhcampuswien.fhmdb.models;
 import at.ac.fhcampuswien.fhmdb.exception.MovieAPIException;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import okhttp3.HttpUrl;
+//import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -11,10 +11,10 @@ import okhttp3.Response;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.io.IOException;
 import java.util.List;
 
 public class MovieAPI {
@@ -65,8 +65,7 @@ public class MovieAPI {
     }
 
     public static List<Movie> getAllMovies() throws MovieAPIException {
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL).newBuilder();
-        String url = urlBuilder.build().toString();
+        String url = new MovieAPIRequestBuilder(BASE_URL).build();
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader(USER_AGENT_HEADER, USER_AGENT_VALUE)
@@ -81,12 +80,12 @@ public class MovieAPI {
     }
 
     public static List<Movie> filterMovies(String query, String genre,String releaseYear,String rating) throws MovieAPIException {
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL).newBuilder();
-        urlBuilder.addQueryParameter("query", query == null? "":query);
-        urlBuilder.addQueryParameter("genre", genre == null? "":genre);
-        urlBuilder.addQueryParameter("releaseYear", releaseYear == null? "":releaseYear);
-        urlBuilder.addQueryParameter("ratingFrom", rating == null? "":rating);
-        String url = urlBuilder.build().toString();
+        String url = new MovieAPIRequestBuilder(BASE_URL)
+                .query(query)
+                .genre(genre)
+                .releaseYear(releaseYear)
+                .ratingFrom(rating)
+                .build();
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader(USER_AGENT_HEADER, USER_AGENT_VALUE)
@@ -100,8 +99,7 @@ public class MovieAPI {
         }
     }
     public static Movie getMovie(String iD) throws MovieAPIException {
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL + "/" + iD).newBuilder();
-        String url = urlBuilder.build().toString();
+        String url = new MovieAPIRequestBuilder(BASE_URL + "/" + iD).build();
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader(USER_AGENT_HEADER, USER_AGENT_VALUE)
