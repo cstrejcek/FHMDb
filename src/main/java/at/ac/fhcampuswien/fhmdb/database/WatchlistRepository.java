@@ -32,6 +32,12 @@ public class WatchlistRepository implements WatchlistObservable {
     }
     public int addToWatchlist(WatchlistMovieEntity movie) throws DatabaseException {
         try {
+            //check if movie is already in watchlist
+            List<WatchlistMovieEntity> existingMovies = dao.queryForEq("apiId", movie.getApiId());
+            if (!existingMovies.isEmpty()) {
+                notifyObservers("Movie is already in the watchlist.");
+                return 0;
+            }
             int result = dao.create(movie);
             notifyObservers("Movie successfully added to watchlist.");
             return result;
